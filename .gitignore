@@ -1,3 +1,6 @@
+# Sample files
+/sample.txt
+
 # Node Modules
 node_modules/
 client/node_modules/

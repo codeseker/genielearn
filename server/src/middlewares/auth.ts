@@ -34,7 +34,7 @@ export const authMiddleware = asyncHandler(
       });
     }
 
-    (req as any).user = user;
+    (req as any).user = user.toJSON();
     next();
   }
 );

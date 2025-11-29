@@ -19,6 +19,6 @@ const moduleSchema: Schema<IModule> = new Schema<IModule>(
   }
 );
 
-const module: Model<IModule> = mongoose.model<IModule>("Module", moduleSchema);
+const moduleModel: Model<IModule> = mongoose.model<IModule>("Module", moduleSchema);
 
-export default module;
+export default moduleModel;
