@@ -49,7 +49,7 @@ const courseSchema = z.object({
   targetAudience: z
     .string()
     .min(3, "Target audience must be at least 3 characters long"),
-  duration: z.number().min(1, "Duration must be at least 1 hour"),
+  duration: z.string().min(1, "Duration must be at least 1 hour"),
   topicType: z.string().min(3, "Topic type must be at least 3 characters long"),
 });
 

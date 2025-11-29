@@ -13,7 +13,7 @@ export interface ILesson extends Document {
 const lessonSchema: Schema<ILesson> = new Schema<ILesson>(
   {
     title: { type: String, required: true },
-    content: { type: mongoose.Schema.Types.Mixed, required: true, default: "" },
+    content: { type: mongoose.Schema.Types.Mixed, required: true, default: null },
     module: { type: mongoose.Types.ObjectId, ref: "Module", required: true },
     isDeleted: { type: Boolean, default: false },
     order: { type: Number, required: true },

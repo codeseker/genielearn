@@ -20,7 +20,10 @@ export const index = asyncHandler(async (req: Request, res: Response) => {
     search = "",
   } = req.query as { page?: string; limit?: string; search?: string };
 
-  const courses = await courseModel.find({isDeleted: false});
+  const courses = await courseModel.find({
+    isDeleted: false,
+    createdBy: (req as any).user.id,
+  });
 
   return successResponse(res, {
     message: "Courses fetched successfully",
@@ -142,11 +145,15 @@ export const show = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
-
 export const remove = asyncHandler(async (req: Request, res: Response) => {
   const { courseId } = req.params;
 
-  const courseData = await courseModel.findById(courseId);
+  const courseData = await courseModel.findOne({
+    _id: courseId,
+    isDeleted: false,
+    createdBy: (req as any).user.id,
+  });
+  
   if (!courseData) {
     return errorResponse(res, {
       statusCode: 404,
@@ -162,6 +169,4 @@ export const remove = asyncHandler(async (req: Request, res: Response) => {
     data: null,
     message: "Course deleted successfully",
   });
-
-  
 });
