@@ -3,23 +3,26 @@ import { LoginForm, type LoginSchema } from "@/components/login-form";
 import { setUser } from "@/store/slices/user";
 import { successToast } from "@/utils/toaster";
 import { useState } from "react";
-
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { useAsyncHandler } from "@/utils/async-handler";
 
 function Login() {
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [loading, setLoading] = useState<boolean>(false);
+  const asyncHandler = useAsyncHandler();
+  const safeLogin = asyncHandler(login); 
+
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (data: LoginSchema) => {
     setLoading(true);
-    const result = await login(data);
+
+    const result = await safeLogin(data); 
     setLoading(false);
 
-    if (!result) return;
+    if (!result) return; 
 
     const finalUser = result.data;
 
@@ -35,7 +38,7 @@ function Login() {
           <h1>Loading...</h1>
         </div>
       </div>
-    )
+    );
   }
 
   return (

@@ -8,15 +8,21 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ) => {
-  if (err instanceof ApiError) {
-    return errorResponse(res, {
-      statusCode: err.statusCode,
-      message: err.message,
-      errors: err.errors,
-    });
-  }
+  // if (err instanceof ApiError) {
+  //   return errorResponse(res, {
+  //     statusCode: err.statusCode,
+  //     message: err.message,
+  //     errors: err.errors,
+  //   });
+  // }
+  console.log("UNHANDELLED: ", err, " Request: ", req.url);
 
-  console.log("UNHANDELLED: ", err);
+  return errorResponse(res, {
+    statusCode: err.statusCode,
+    message: err.message,
+    errors: err.errors,
+  });
+
 
   return errorResponse(res, {
     statusCode: 500,

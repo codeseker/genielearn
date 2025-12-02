@@ -1,84 +1,60 @@
-// src/pages/CourseDetails.tsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ChevronDown, ChevronRight, BookOpen } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useAsyncHandler } from "@/utils/async-handler";
+import { showCourse } from "@/actions/course";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
 
-type Lesson = {
-    id: string;
-    title: string;
-};
-
-type Module = {
-    id: string;
-    title: string;
-    lessons: Lesson[];
-};
-
-type Course = {
-    id: string;
-    title: string;
-    modules: Module[];
-};
-
-// Dummy Course
-const dummyCourse: Course = {
-    id: "1",
-    title: "React Basics",
-    modules: [
-        {
-            id: "m1",
-            title: "Introduction",
-            lessons: [
-                { id: "l1", title: "What is React?" },
-                { id: "l2", title: "Why React?" },
-            ],
-        },
-        {
-            id: "m2",
-            title: "Core Concepts",
-            lessons: [
-                { id: "l3", title: "Components" },
-                { id: "l4", title: "Props" },
-                { id: "l5", title: "State" },
-            ],
-        },
-        {
-            id: "m3",
-            title: "Advanced Topics",
-            lessons: [
-                { id: "l6", title: "Hooks" },
-                { id: "l7", title: "Context API" },
-            ],
-        },
-    ],
-};
 
 export default function CourseDetails() {
     const { id } = useParams();
 
-    console.log('ID: ', id);
-    const course = dummyCourse; // later get via API
+    const user = useSelector((state: RootState) => state.user);
+
+
+    const asyncHandler = useAsyncHandler();
+    const safeCourseView = asyncHandler(showCourse); // this wraps showCourse which can have error and will protect it
+
+    const [course, setCourse] = useState<any>(null);
+
 
     const [expanded, setExpanded] = useState<string | null>(null);
+
+    const getCourse = async () => {
+        const res = await safeCourseView(user.token as string, {
+            courseId: id as string
+        });
+        const data = res?.data;
+        setCourse(data?.course);
+    }
+
+    useEffect(() => {
+        if (!user.token || !user.user) return;
+
+        getCourse();
+
+    }, [user]);
 
     const toggleModule = (moduleId: string) => {
         setExpanded((prev) => (prev === moduleId ? null : moduleId));
     };
 
+    if (!course) {
+        return <>Invalid Id or Course Not found</>;
+    }
+
     return (
         <div className="space-y-8">
-            {/* COURSE TITLE */}
             <Card className="bg-[#151515] border-gray-800">
                 <CardHeader>
                     <CardTitle className="text-2xl">{course.title}</CardTitle>
                 </CardHeader>
             </Card>
 
-            {/* MODULES + LESSONS */}
             <div className="space-y-4">
-                {course.modules.map((m) => (
+                {course.modules.map((m: any) => (
                     <Card
                         className="bg-[#151515] border-gray-800"
                         key={m.id}
@@ -100,7 +76,7 @@ export default function CourseDetails() {
                         {/* LESSON LIST */}
                         {expanded === m.id && (
                             <CardContent className="space-y-3 animate-in fade-in duration-200">
-                                {m.lessons.map((lesson) => (
+                                {m.lessons.map((lesson: any) => (
                                     <div
                                         key={lesson.id}
                                         className="flex items-center gap-3 p-3 rounded-md bg-[#1b1b1b] border border-gray-800 hover:bg-[#222] cursor-pointer"
@@ -113,12 +89,6 @@ export default function CourseDetails() {
                         )}
                     </Card>
                 ))}
-            </div>
-
-            {/* BUTTONS */}
-            <div className="flex gap-3">
-                <Button>Edit Course</Button>
-                <Button variant="outline">Add Module</Button>
             </div>
         </div>
     );
