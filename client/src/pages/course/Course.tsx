@@ -27,6 +27,7 @@ export default function CourseDetails() {
             courseId: id as string
         });
         const data = res?.data;
+        
         setCourse(data?.course);
     }
 
