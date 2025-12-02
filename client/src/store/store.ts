@@ -1,10 +1,13 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import userReducer from "./slices/user";
+import courseReducer from "./slices/course";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 
+
 const rootReducer = combineReducers({
   user: userReducer,
+  course: courseReducer
 });
 
 const persistConfig = {

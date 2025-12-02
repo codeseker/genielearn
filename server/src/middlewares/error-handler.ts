@@ -15,7 +15,7 @@ export const errorHandler = (
   //     errors: err.errors,
   //   });
   // }
-  console.log("UNHANDELLED: ", err, " Request: ", req.url);
+  // console.log("UNHANDELLED: ", err, " Request: ", req.url);
 
   return errorResponse(res, {
     statusCode: err.statusCode,

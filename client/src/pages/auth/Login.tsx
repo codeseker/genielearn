@@ -20,6 +20,7 @@ function Login() {
     setLoading(true);
 
     const result = await safeLogin(data); 
+  
     setLoading(false);
 
     if (!result) return; 

@@ -13,27 +13,27 @@ import {
 
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
 import { useAsyncHandler } from "@/utils/async-handler";
 import { indexCourses, type MultipleCoursesResponse } from "@/actions/course";
+import { setCourses } from "@/store/slices/course";
 
 export default function MySidebar() {
   const { pathname } = useLocation();
-  // const navigate = useNavigate();
 
   const asyncHandler = useAsyncHandler();
   const safeIndexCourses = asyncHandler(indexCourses);
+
+  const dispatch = useDispatch();
 
   const [search, setSearch] = useState("");
 
   const user = useSelector((state: RootState) => state.user);
 
-  const [courses, setCourses] = useState<{
-    id: string,
-    title: string,
-  }[]>([]);
-
+  const courses = useSelector(
+    (state: RootState) => state.course.courses
+  ) as { id: string, title: string }[];
   const getCourses = async (token: string) => {
     const res = await safeIndexCourses(token);
 
@@ -48,7 +48,9 @@ export default function MySidebar() {
       title: course.title
     }));
 
-    setCourses(temp);
+    // setCoursesData(temp);
+    dispatch(setCourses(temp));
+
   };
   useEffect(() => {
     if (!user.token) return;
@@ -76,7 +78,7 @@ export default function MySidebar() {
 
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
-              {courses.map((item) => {
+              {courses && courses.map((item) => {
                 const url = '/course/' + item.id + '/module/1/lesson/1';
                 const isActive = pathname.startsWith(url);
                 return (

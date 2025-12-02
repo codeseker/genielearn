@@ -108,6 +108,7 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
     message: "Course, Modules & Lessons created successfully",
     data: {
       courseId: courseData._id,
+      title: courseData.title,
       totalModules: insertedModules.length,
       totalLessons: lessonsInsertData.length,
     },

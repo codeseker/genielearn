@@ -6,6 +6,7 @@ import Home from "./pages/home/Home";
 import Register from "./pages/auth/Register";
 import Layout from "./components/layout";
 import CourseDetails from "./pages/course/Course";
+import Lesson from "./pages/lesson/Lesson";
 
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
             <Route path="/course/:id" element={<CourseDetails />} />
+            <Route path="/course/:courseId/module/:modNum/lesson/:lessonNum" element={<Lesson />} />
           </Route>
         </Route>
         <Route
