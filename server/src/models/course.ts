@@ -7,8 +7,10 @@ export interface ICourse extends Document {
   isDeleted: boolean;
   tags: string[];
   level: string;
-  targetAudience: string;
-  estimatedDurationHours: number;
+  targetAudience: string[];
+  estimatedDuration: string;
+  prerequisites: string[];
+  intentCategory: string;
 }
 
 const courseSchema: Schema<ICourse> = new Schema<ICourse>(
@@ -18,9 +20,11 @@ const courseSchema: Schema<ICourse> = new Schema<ICourse>(
     createdBy: { type: mongoose.Types.ObjectId, ref: "User", required: true },
     isDeleted: { type: Boolean, default: false },
     tags: { type: [String], default: [] },
-    level: { type: String, required: true },
-    targetAudience: { type: String, required: true },
-    estimatedDurationHours: { type: Number, required: true },
+    level: { type: String, required: false },
+    targetAudience: { type: [String], required: false },
+    estimatedDuration: { type: String, required: false },
+    prerequisites: { type: [String], default: [] },
+    intentCategory: { type: String, required: true },
   },
   {
     timestamps: true,

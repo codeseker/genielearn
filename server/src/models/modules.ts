@@ -10,7 +10,7 @@ export interface IModule extends Document {
 const moduleSchema: Schema<IModule> = new Schema<IModule>(
   {
     title: { type: String, required: true },
-    description: { type: String, required: true },
+    description: { type: String, required: false },
     course: { type: mongoose.Types.ObjectId, ref: "Course", required: true },
     isDeleted: { type: Boolean, default: false },
   },

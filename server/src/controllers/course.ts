@@ -1,17 +1,19 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../utils/async-handler";
 import { errorResponse, successResponse } from "../utils/api";
-import { coursePrompt } from "../constants/prompts/course";
+import {
+  coursePrompt,
+  intentSystemPrompt,
+  metadataSystemPrompt,
+  securityChecks,
+} from "../constants/prompts/course";
 import { model } from "../config/ai";
 import { Course } from "../types/course";
 import courseModel from "../models/course";
 import moduleModel from "../models/modules";
 import lessonModel from "../models/lesson";
-
-/*
- * Retrieves a paginated, filterable, and sortable list of courses.
- * Designed for lightweight sidebar rendering on the frontend.
- */
+import { validateQuery, validateUserQuery } from "../validations/course";
+import { GenerativeModel } from "@google/generative-ai";
 
 export const index = asyncHandler(async (req: Request, res: Response) => {
   const {
@@ -36,89 +38,160 @@ export const index = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
-/*
-    - Create a new Course along with its Modules and Lessons
-    - The course structure is generated using an AI model based on user input
-    - The generated data is then parsed and stored in the database
-*/
+async function withRetry(fn: any, retries = 2, delay = 500) {
+  let lastError;
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err;
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+  throw lastError;
+}
+
+function cleanJSON(str: string) {
+  return str
+    .replace(/```json/i, "")
+    .replace(/```/g, "")
+    .trim();
+}
+
+async function classifyIntent(
+  model: GenerativeModel,
+  userQuery: string
+): Promise<{
+  intentCategory: string;
+  primaryTopic: string;
+  reasoning: string;
+}> {
+  return await withRetry(async () => {
+    const response = await model.generateContent({
+      contents: [
+        { role: "user", parts: [{ text: intentSystemPrompt }] },
+        { role: "user", parts: [{ text: userQuery }] },
+      ],
+    });
+
+    const text = response.response.text();
+    return JSON.parse(cleanJSON(text));
+  });
+}
+
+async function generateMetadata(
+  model: GenerativeModel,
+  intentJSON: any
+): Promise<{
+  title: string;
+  description: string;
+  targetAudience: string[];
+  estimatedDuration: string;
+  tags: string[];
+  prerequisites: string[];
+}> {
+  return await withRetry(async () => {
+    const response = await model.generateContent({
+      contents: [
+        { role: "user", parts: [{ text: metadataSystemPrompt }] },
+        { role: "user", parts: [{ text: JSON.stringify(intentJSON) }] },
+      ],
+    });
+
+    const text = response.response.text();
+    return JSON.parse(cleanJSON(text));
+  });
+}
+
 export const create = asyncHandler(async (req: Request, res: Response) => {
-  const { userQuery, level, targetAudience, duration, topicType } = req.body;
+  const { userQuery } = req.body;
 
-  const prompt = coursePrompt({
-    userQuery,
-    // level,
-    // targetAudience,
-    // duration,
-    // topicType,
+  // Validate user query against security checks
+  const checks = await validateUserQuery(model, securityChecks, userQuery);
+
+  if (!checks.isValid) {
+    return errorResponse(res, {
+      message: "Invalid user query from AI model",
+      errors: checks.reasons,
+    });
+  }
+
+  const intent = await classifyIntent(model, userQuery);
+  const metadata = await generateMetadata(model, intent);
+
+  successResponse(res, {
+    message: "Course metadata generated successfully",
+    data: { metadata, intent },
+    flag: true,
   });
 
-  const response = await model.generateContent({
-    contents: [
-      {
-        role: "user",
-        parts: [{ text: prompt }],
-      },
-    ],
-  });
+  // Fire-and-forget async processing with timeout protection
+  process.nextTick(async () => {
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Course processing timeout")), 30000)
+    );
 
-  const text = response.response.text();
-  const cleaned = text.replace(/```json|```/g, "").trim();
+    try {
+      await Promise.race([
+        timeoutPromise,
+        (async () => {
+          // Create course record
+          const courseData = await courseModel.create({
+            title: metadata.title,
+            description: metadata.description,
+            targetAudience: metadata.targetAudience,
+            estimatedDuration: metadata.estimatedDuration,
+            tags: metadata.tags,
+            createdBy: (req as any).user.id,
+            intentCategory: intent.intentCategory,
+            prerequisites: metadata.prerequisites,
+          });
 
-  let json: Course = JSON.parse(cleaned);
+          console.log("Course created:", courseData._id);
 
-  const courseData = new courseModel({
-    title: json.title,
-    topic: json.topic,
-    level: json.level,
-    targetAudience: json.targetAudience,
-    estimatedDurationHours: json.estimatedDurationHours,
-    description: json.description,
-    tags: json.tags,
-    createdBy: (req as any).user.id,
-  });
+          // Generate course content
+          const prompt = coursePrompt({ ...metadata, userQuery });
+          const response = await model.generateContent({
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+          });
 
-  await courseData.save();
+          const raw = response.response.text();
+          const json: Course = JSON.parse(cleanJSON(raw));
 
-  const moduleInsertData = json.modules.map((mod) => ({
-    title: mod.title,
-    description: mod.description,
-    course: courseData._id,
-  }));
+          const moduleInsertData = json.modules.map((mod) => ({
+            title: mod.title,
+            description: mod.description,
+            course: courseData._id,
+          }));
 
-  const insertedModules = await moduleModel.insertMany(moduleInsertData);
+          const insertedModules = await moduleModel.insertMany(
+            moduleInsertData
+          );
 
-  const moduleMap = new Map<string, string>();
-  insertedModules.forEach((m) => {
-    moduleMap.set(m.title, m._id.toString());
-  });
+          const moduleMap = new Map<string, string>();
+          insertedModules.forEach((m) => {
+            moduleMap.set(m.title, m._id.toString());
+          });
 
-  const lessonsInsertData = json.modules.flatMap((mod) =>
-    mod.lessons.map((les) => ({
-      title: les.title,
-      module: moduleMap.get(mod.title),
-      order: les.order,
-      description: les.description,
-      estimatedMinutes: les.estimatedMinutes,
-    }))
-  );
+          const lessonsInsertData = json.modules.flatMap((mod) =>
+            mod.lessons.map((les) => ({
+              title: les.title,
+              module: moduleMap.get(mod.title),
+              order: les.order,
+              description: les.description,
+              estimatedMinutes: les.estimatedMinutes,
+            }))
+          );
 
-  await lessonModel.insertMany(lessonsInsertData);
-
-  return successResponse(res, {
-    message: "Course, Modules & Lessons created successfully",
-    data: {
-      courseId: courseData._id,
-      title: courseData.title,
-      totalModules: insertedModules.length,
-      totalLessons: lessonsInsertData.length,
-    },
+          await lessonModel.insertMany(lessonsInsertData);
+        })(),
+      ]);
+    } catch (error: any) {
+        console.error("Course processing failed:", error);
+    }
   });
 });
 
-/*
-  - Get Single course by ID along with its Modules and Lessons
-  - Populates the course structure for detailed view on the frontend
-*/
 export const show = asyncHandler(async (req: Request, res: Response) => {
   const { courseId } = req.params;
 
@@ -154,7 +227,7 @@ export const remove = asyncHandler(async (req: Request, res: Response) => {
     isDeleted: false,
     createdBy: (req as any).user.id,
   });
-  
+
   if (!courseData) {
     return errorResponse(res, {
       statusCode: 404,

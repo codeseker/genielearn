@@ -16,9 +16,9 @@ const lessonSchema: Schema<ILesson> = new Schema<ILesson>(
     content: { type: mongoose.Schema.Types.Mixed, default: "" },
     module: { type: mongoose.Types.ObjectId, ref: "Module", required: true },
     isDeleted: { type: Boolean, default: false },
-    order: { type: Number, required: true },
-    description: { type: String, required: true },
-    estimatedMinutes: { type: Number, required: true },
+    order: { type: Number, required: false },
+    description: { type: String, required: false },
+    estimatedMinutes: { type: Number, required: false },
   },
   {
     timestamps: true,

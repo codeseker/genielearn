@@ -5,9 +5,11 @@ export interface Course {
   tags: string[];
   level: string;
   targetAudience: string;
-  estimatedDurationHours: number;
+  estimatedDuration: string;
   primaryGoal: string;
   modules: Module[];
+  intentCategory: string;
+  prerequisites: string[];
 }
 
 export interface Module {
@@ -23,6 +25,6 @@ export interface Lesson {
   id: string;
   title: string;
   order: number;
-    description: string;
+  description: string;
   estimatedMinutes: number;
 }

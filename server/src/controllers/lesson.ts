@@ -5,16 +5,23 @@ import { lessonPrompt } from "../constants/prompts/lesson";
 import { model } from "../config/ai";
 import moduleModel from "../models/modules";
 import lesson from "../models/lesson";
+import course from "../models/course";
 
 export const create = asyncHandler(async (req: Request, res: Response) => {
   const {
-    courseTitle,
-    moduleTitle,
-    lessonTitle,
+    courseId,
     lessonOrder,
     moduleId,
     lessonId,
   } = req.body;
+
+  const courseData = await course.findById(courseId);
+  if(!courseData) {
+    return errorResponse(res, {
+      statusCode: 404,
+      message: "Course not found",
+    });
+  }
 
   const moduleData = await moduleModel
     .findById(moduleId)
@@ -67,12 +74,22 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
     .sort((a: any, b: any) => a.order - b.order);
 
   const prompt = lessonPrompt({
-    courseTitle,
-    moduleTitle,
-    lessonTitle,
+    courseTitle: courseData.title,
+    moduleTitle: moduleData.title,
+    lessonTitle: lessonData.title,
     lessonOrder,
     upcomingLessons,
   });
+  
+  // console.log('Course: ', courseData.title);
+  // console.log('Module: ', moduleData.title);
+  // console.log('Lesson: ', lessonData.title);
+
+  // return successResponse(res, {
+  //   statusCode: 200,
+  //   message: "Prompt generated successfully",
+  //   data: prompt,
+  // })
 
   const response = await model.generateContent({
     contents: [

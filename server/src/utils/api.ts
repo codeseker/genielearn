@@ -5,14 +5,21 @@ import { ApiError } from "./api-error";
 export const successResponse = <T>(
   res: Response,
   {
+    flag = false,
     statusCode = 200,
     data,
     message = "Success",
-  }: { statusCode?: number; data: T; message?: string }
+  }: { statusCode?: number; data: T; message?: string, flag?: boolean }
 ) => {
-  return res
-    .status(statusCode)
-    .json(new ApiResponse({ statusCode, data, message }));
+  if(!flag) {
+    return res
+      .status(statusCode)
+      .json(new ApiResponse({ statusCode, data, message }));
+  } else {
+    res
+      .status(statusCode)
+      .json(new ApiResponse({ statusCode, data, message }));
+  }
 };
 
 export const errorResponse = (
