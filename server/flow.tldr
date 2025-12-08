@@ -72,9 +72,9 @@
 		{
 			"id": "pointer:pointer",
 			"typeName": "pointer",
-			"x": 1130.9794710581973,
-			"y": 248.32122964298125,
-			"lastActivityTimestamp": 1764918606198,
+			"x": 1614.6271391999521,
+			"y": 65.88851752832704,
+			"lastActivityTimestamp": 1765168444660,
 			"meta": {}
 		},
 		{
@@ -94,6 +94,45 @@
 				"terminal": "start"
 			},
 			"typeName": "binding"
+		},
+		{
+			"x": 1555.125455966513,
+			"y": 88.63486267810312,
+			"rotation": 0,
+			"isLocked": false,
+			"opacity": 1,
+			"meta": {},
+			"id": "shape:qwfDDiGRhVPctupueI_KF",
+			"type": "text",
+			"props": {
+				"color": "orange",
+				"size": "m",
+				"w": 83.546875,
+				"font": "draw",
+				"textAlign": "start",
+				"autoSize": true,
+				"scale": 1,
+				"richText": {
+					"type": "doc",
+					"content": [
+						{
+							"type": "paragraph",
+							"attrs": {
+								"dir": "auto"
+							},
+							"content": [
+								{
+									"type": "text",
+									"text": "Lesson"
+								}
+							]
+						}
+					]
+				}
+			},
+			"parentId": "page:page",
+			"index": "aOcAMC6V",
+			"typeName": "shape"
 		},
 		{
 			"x": -49.279638039821634,
@@ -133,6 +172,45 @@
 					]
 				}
 			}
+		},
+		{
+			"x": 1556.7789717917708,
+			"y": 0.24952252916035889,
+			"rotation": 0,
+			"isLocked": false,
+			"opacity": 1,
+			"meta": {},
+			"id": "shape:kmi0Ovr01ICvYadO1tln-",
+			"type": "text",
+			"props": {
+				"color": "orange",
+				"size": "m",
+				"w": 82.921875,
+				"font": "draw",
+				"textAlign": "start",
+				"autoSize": true,
+				"scale": 1,
+				"richText": {
+					"type": "doc",
+					"content": [
+						{
+							"type": "paragraph",
+							"attrs": {
+								"dir": "auto"
+							},
+							"content": [
+								{
+									"type": "text",
+									"text": "Course"
+								}
+							]
+						}
+					]
+				}
+			},
+			"parentId": "page:page",
+			"index": "aMcJAk1V",
+			"typeName": "shape"
 		},
 		{
 			"x": 337.0713448433886,
@@ -222,9 +300,9 @@
 			"typeName": "shape"
 		},
 		{
-			"x": 125.17615275906009,
-			"y": -15.220186048026244,
-			"z": 1.003856509568473,
+			"x": -1521.7953966111131,
+			"y": 304.6450191296884,
+			"z": 1.2603447564073489,
 			"meta": {},
 			"id": "camera:page:page",
 			"typeName": "camera"
@@ -308,6 +386,45 @@
 				"terminal": "start"
 			},
 			"typeName": "binding"
+		},
+		{
+			"x": 1379.7845431912351,
+			"y": -39.66098588076433,
+			"rotation": 0,
+			"isLocked": false,
+			"opacity": 1,
+			"meta": {},
+			"id": "shape:GVlfdW-DntLJWhE5t3OpZ",
+			"type": "text",
+			"props": {
+				"color": "light-green",
+				"size": "m",
+				"w": 105.09375,
+				"font": "draw",
+				"textAlign": "start",
+				"autoSize": true,
+				"scale": 1,
+				"richText": {
+					"type": "doc",
+					"content": [
+						{
+							"type": "paragraph",
+							"attrs": {
+								"dir": "auto"
+							},
+							"content": [
+								{
+									"type": "text",
+									"text": "Backend"
+								}
+							]
+						}
+					]
+				}
+			},
+			"parentId": "page:page",
+			"index": "aKQvMOMV",
+			"typeName": "shape"
 		},
 		{
 			"x": 172.6828068987229,
@@ -496,9 +613,9 @@
 			"editingShapeId": null,
 			"croppingShapeId": null,
 			"selectedShapeIds": [
-				"shape:3SdVI8kQKDxF4fceaeRVQ"
+				"shape:V7nqLo5Pri2C7ag4zL43Y"
 			],
-			"hoveredShapeId": null,
+			"hoveredShapeId": "shape:V7nqLo5Pri2C7ag4zL43Y",
 			"erasingShapeIds": [],
 			"hintingShapeIds": [],
 			"focusedGroupId": null,
@@ -607,6 +724,108 @@
 			"typeName": "binding"
 		},
 		{
+			"x": 1655.8856914616583,
+			"y": -10.281117416361326,
+			"rotation": 0,
+			"isLocked": false,
+			"opacity": 1,
+			"meta": {},
+			"id": "shape:jaAYnSoTmks6DYSNBs8fP",
+			"type": "text",
+			"props": {
+				"color": "light-green",
+				"size": "m",
+				"w": 243.859375,
+				"font": "draw",
+				"textAlign": "start",
+				"autoSize": true,
+				"scale": 0.5603637253489672,
+				"richText": {
+					"type": "doc",
+					"content": [
+						{
+							"type": "paragraph",
+							"attrs": {
+								"dir": "auto"
+							},
+							"content": [
+								{
+									"type": "text",
+									"text": "All, create, "
+								}
+							]
+						},
+						{
+							"type": "paragraph",
+							"attrs": {
+								"dir": "auto"
+							},
+							"content": [
+								{
+									"type": "text",
+									"text": "View course, Delete"
+								}
+							]
+						}
+					]
+				}
+			},
+			"parentId": "page:page",
+			"index": "aQTXsD4V",
+			"typeName": "shape"
+		},
+		{
+			"x": 1626.9629429237232,
+			"y": -63.98547065455041,
+			"rotation": 0,
+			"isLocked": false,
+			"opacity": 1,
+			"meta": {},
+			"id": "shape:OeeAsLfdN_sWlACOE9yno",
+			"type": "text",
+			"props": {
+				"color": "light-green",
+				"size": "m",
+				"w": 272.09375,
+				"font": "draw",
+				"textAlign": "start",
+				"autoSize": true,
+				"scale": 0.5835717015405363,
+				"richText": {
+					"type": "doc",
+					"content": [
+						{
+							"type": "paragraph",
+							"attrs": {
+								"dir": "auto"
+							},
+							"content": [
+								{
+									"type": "text",
+									"text": "Login, Signup, Profile, "
+								}
+							]
+						},
+						{
+							"type": "paragraph",
+							"attrs": {
+								"dir": "auto"
+							},
+							"content": [
+								{
+									"type": "text",
+									"text": "Logout,  refresh"
+								}
+							]
+						}
+					]
+				}
+			},
+			"parentId": "page:page",
+			"index": "aP8s2iBV",
+			"typeName": "shape"
+		},
+		{
 			"x": 478.17143111393347,
 			"y": 383.19339627638976,
 			"rotation": 0,
@@ -648,6 +867,45 @@
 			},
 			"parentId": "page:page",
 			"index": "aHzzPrMVM",
+			"typeName": "shape"
+		},
+		{
+			"x": 1554.3986706997491,
+			"y": 47.15256211374694,
+			"rotation": 0,
+			"isLocked": false,
+			"opacity": 1,
+			"meta": {},
+			"id": "shape:V7nqLo5Pri2C7ag4zL43Y",
+			"type": "text",
+			"props": {
+				"color": "orange",
+				"size": "m",
+				"w": 92.78125,
+				"font": "draw",
+				"textAlign": "start",
+				"autoSize": true,
+				"scale": 1,
+				"richText": {
+					"type": "doc",
+					"content": [
+						{
+							"type": "paragraph",
+							"attrs": {
+								"dir": "auto"
+							},
+							"content": [
+								{
+									"type": "text",
+									"text": "Module"
+								}
+							]
+						}
+					]
+				}
+			},
+			"parentId": "page:page",
+			"index": "aNkewwlV",
 			"typeName": "shape"
 		},
 		{
@@ -749,6 +1007,45 @@
 			},
 			"parentId": "page:page",
 			"index": "aDxFy8xV",
+			"typeName": "shape"
+		},
+		{
+			"x": 1556.7789717917706,
+			"y": -37.347333219319424,
+			"rotation": 0,
+			"isLocked": false,
+			"opacity": 1,
+			"meta": {},
+			"id": "shape:9zzDFSiz-i7GDbQzTnGg_",
+			"type": "text",
+			"props": {
+				"color": "orange",
+				"size": "m",
+				"w": 61.109375,
+				"font": "draw",
+				"textAlign": "start",
+				"autoSize": true,
+				"scale": 1,
+				"richText": {
+					"type": "doc",
+					"content": [
+						{
+							"type": "paragraph",
+							"attrs": {
+								"dir": "auto"
+							},
+							"content": [
+								{
+									"type": "text",
+									"text": "Auth"
+								}
+							]
+						}
+					]
+				}
+			},
+			"parentId": "page:page",
+			"index": "aL67ACUG",
 			"typeName": "shape"
 		},
 		{
@@ -981,12 +1278,8 @@
 			"followingUserId": null,
 			"opacityForNextShape": 1,
 			"stylesForNextShape": {
-				"tldraw:fill": "solid",
-				"tldraw:geo": "rectangle",
-				"tldraw:size": "s",
-				"tldraw:color": "orange",
-				"tldraw:arrowKind": "arc",
-				"tldraw:dash": "dotted"
+				"tldraw:font": "draw",
+				"tldraw:color": "light-green"
 			},
 			"brush": null,
 			"scribbles": [],
@@ -1001,7 +1294,7 @@
 			"screenBounds": {
 				"x": 0,
 				"y": 0,
-				"w": 1318,
+				"w": 659,
 				"h": 652
 			},
 			"insets": [
@@ -1019,9 +1312,9 @@
 			"isFocused": true,
 			"devicePixelRatio": 1,
 			"isCoarsePointer": false,
-			"isHoveringCanvas": false,
+			"isHoveringCanvas": true,
 			"openMenus": [],
-			"isChangingStyle": true,
+			"isChangingStyle": false,
 			"isReadonly": false,
 			"meta": {},
 			"duplicateProps": null,

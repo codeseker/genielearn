@@ -3,8 +3,6 @@ import { asyncHandler } from "../utils/async-handler";
 import { errorResponse, successResponse } from "../utils/api";
 import {
   coursePrompt,
-  intentSystemPrompt,
-  metadataSystemPrompt,
   securityChecks,
 } from "../constants/prompts/course";
 import { model } from "../config/ai";
@@ -13,7 +11,11 @@ import courseModel from "../models/course";
 import moduleModel from "../models/modules";
 import lessonModel from "../models/lesson";
 import { validateQuery, validateUserQuery } from "../validations/course";
-import { GenerativeModel } from "@google/generative-ai";
+import {
+  classifyIntent,
+  cleanJSON,
+  generateMetadata,
+} from "../utils/helper-function";
 
 export const index = asyncHandler(async (req: Request, res: Response) => {
   const {
@@ -22,89 +24,50 @@ export const index = asyncHandler(async (req: Request, res: Response) => {
     search = "",
   } = req.query as { page?: string; limit?: string; search?: string };
 
-  const courses = await courseModel.find({
+  const pageNumber = parseInt(page as string, 10);
+  const limitNumber = parseInt(limit as string, 10);
+
+  const skip = (pageNumber - 1) * limitNumber;
+
+  const filter: any = {
     isDeleted: false,
     createdBy: (req as any).user.id,
-  });
+  };
+
+  if (search) {
+    filter.$or = [
+      { title: { $regex: search, $options: "i" } },
+      { description: { $regex: search, $options: "i" } },
+    ];
+  }
+  const total = await courseModel.countDocuments(filter);
+
+  const courses = await courseModel
+    .find(filter)
+    .skip(skip)
+    .limit(limitNumber)
+    .sort({ createdAt: -1 });
+
+  const totalPages = Math.ceil(total / limitNumber);
 
   return successResponse(res, {
     message: "Courses fetched successfully",
     data: {
       courses: courses.map((course) => course.toJSON()),
-      total: courses.length,
-      page: parseInt(page as string, 10),
-      limit: parseInt(limit as string, 10),
+      pagination: {
+        total,
+        page: pageNumber,
+        limit: limitNumber,
+        totalPages,
+        hasNextPage: pageNumber < totalPages,
+        hasPreviousPage: pageNumber > 1,
+      },
     },
   });
 });
 
-async function withRetry(fn: any, retries = 2, delay = 500) {
-  let lastError;
-  for (let i = 0; i < retries; i++) {
-    try {
-      return await fn();
-    } catch (err) {
-      lastError = err;
-      await new Promise((r) => setTimeout(r, delay));
-    }
-  }
-  throw lastError;
-}
-
-function cleanJSON(str: string) {
-  return str
-    .replace(/```json/i, "")
-    .replace(/```/g, "")
-    .trim();
-}
-
-async function classifyIntent(
-  model: GenerativeModel,
-  userQuery: string
-): Promise<{
-  intentCategory: string;
-  primaryTopic: string;
-  reasoning: string;
-}> {
-  return await withRetry(async () => {
-    const response = await model.generateContent({
-      contents: [
-        { role: "user", parts: [{ text: intentSystemPrompt }] },
-        { role: "user", parts: [{ text: userQuery }] },
-      ],
-    });
-
-    const text = response.response.text();
-    return JSON.parse(cleanJSON(text));
-  });
-}
-
-async function generateMetadata(
-  model: GenerativeModel,
-  intentJSON: any
-): Promise<{
-  title: string;
-  description: string;
-  targetAudience: string[];
-  estimatedDuration: string;
-  tags: string[];
-  prerequisites: string[];
-}> {
-  return await withRetry(async () => {
-    const response = await model.generateContent({
-      contents: [
-        { role: "user", parts: [{ text: metadataSystemPrompt }] },
-        { role: "user", parts: [{ text: JSON.stringify(intentJSON) }] },
-      ],
-    });
-
-    const text = response.response.text();
-    return JSON.parse(cleanJSON(text));
-  });
-}
-
 export const create = asyncHandler(async (req: Request, res: Response) => {
-  const { userQuery } = req.body;
+  const { prompt: userQuery } = req.body;
 
   // Validate user query against security checks
   const checks = await validateUserQuery(model, securityChecks, userQuery);
@@ -119,9 +82,20 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
   const intent = await classifyIntent(model, userQuery);
   const metadata = await generateMetadata(model, intent);
 
+  const courseData = await courseModel.create({
+    title: metadata.title,
+    description: metadata.description,
+    targetAudience: metadata.targetAudience,
+    estimatedDuration: metadata.estimatedDuration,
+    tags: metadata.tags,
+    createdBy: (req as any).user.id,
+    intentCategory: intent.intentCategory,
+    prerequisites: metadata.prerequisites,
+  });
+
   successResponse(res, {
     message: "Course metadata generated successfully",
-    data: { metadata, intent },
+    data: { metadata, intent, courseId: courseData._id },
     flag: true,
   });
 
@@ -135,20 +109,6 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
       await Promise.race([
         timeoutPromise,
         (async () => {
-          // Create course record
-          const courseData = await courseModel.create({
-            title: metadata.title,
-            description: metadata.description,
-            targetAudience: metadata.targetAudience,
-            estimatedDuration: metadata.estimatedDuration,
-            tags: metadata.tags,
-            createdBy: (req as any).user.id,
-            intentCategory: intent.intentCategory,
-            prerequisites: metadata.prerequisites,
-          });
-
-          console.log("Course created:", courseData._id);
-
           // Generate course content
           const prompt = coursePrompt({ ...metadata, userQuery });
           const response = await model.generateContent({
@@ -187,7 +147,7 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
         })(),
       ]);
     } catch (error: any) {
-        console.error("Course processing failed:", error);
+      console.error("Course processing failed:", error);
     }
   });
 });
@@ -195,21 +155,20 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
 export const show = asyncHandler(async (req: Request, res: Response) => {
   const { courseId } = req.params;
 
-  const courseData = await courseModel.findById(courseId).populate({
-    path: "modules",
-    select: "title description",
-    populate: {
-      path: "lessons",
-      select: "title order description estimatedMinutes",
-    },
-  });
-
-  if (!courseData) {
-    return errorResponse(res, {
-      statusCode: 404,
-      message: "Course not found",
+  const courseData = await courseModel
+    .findOne({
+      _id: courseId,
+      isDeleted: false,
+      createdBy: (req as any).user.id,
+    })
+    .populate({
+      path: "modules",
+      select: "title description",
+      populate: {
+        path: "lessons",
+        select: "title order description estimatedMinutes",
+      },
     });
-  }
 
   return successResponse(res, {
     message: "Course fetched successfully",
@@ -222,21 +181,32 @@ export const show = asyncHandler(async (req: Request, res: Response) => {
 export const remove = asyncHandler(async (req: Request, res: Response) => {
   const { courseId } = req.params;
 
-  const courseData = await courseModel.findOne({
-    _id: courseId,
-    isDeleted: false,
-    createdBy: (req as any).user.id,
-  });
+  const courseData = await courseModel.findOneAndUpdate(
+    {
+      _id: courseId,
+      isDeleted: false,
+      createdBy: (req as any).user.id,
+    },
+    {
+      isDeleted: true,
+    }
+  );
 
-  if (!courseData) {
-    return errorResponse(res, {
-      statusCode: 404,
-      message: "Course not found",
-    });
-  }
+  const allModules = await moduleModel.updateMany(
+    { course: courseId, isDeleted: false },
+    { isDeleted: true }
+  );
 
-  courseData.isDeleted = true;
-  await courseData.save();
+  const moduleIds = await moduleModel
+    .find({ course: courseId }, { _id: 1 })
+    .lean();
+
+  const ids = moduleIds.map((m) => m._id);
+
+  await lessonModel.updateMany(
+    { module: { $in: ids }, isDeleted: false },
+    { isDeleted: true }
+  );
 
   return successResponse(res, {
     statusCode: 200,

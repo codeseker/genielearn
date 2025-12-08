@@ -3,6 +3,8 @@ import { asyncHandler } from "../utils/async-handler";
 import { errorResponse } from "../utils/api";
 import { z } from "zod";
 import { GenerativeModel } from "@google/generative-ai";
+import Course from "../models/course";
+import mongoose from "mongoose";
 
 export const indexValidation = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -42,28 +44,16 @@ export const indexValidation = asyncHandler(
   }
 );
 
-const courseSchema = z.object({
-  userQuery: z
-    .string()
-    .min(10, "User query must be at least 10 characters long"),
-  level: z.string().min(3, "Level must be at least 3 characters long"),
-  targetAudience: z
-    .string()
-    .min(3, "Target audience must be at least 3 characters long"),
-  duration: z.string().min(1, "Duration must be at least 1 hour"),
-  topicType: z.string().min(3, "Topic type must be at least 3 characters long"),
+const createCourseSchema = z.object({
+  prompt: z.string().min(10).max(500),
 });
 
 export const createValidation = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { userQuery, level, targetAudience, duration, topicType } = req.body;
+    const { prompt } = req.body;
 
-    const parseResult = courseSchema.safeParse({
-      userQuery,
-      level,
-      targetAudience,
-      duration,
-      topicType,
+    const parseResult = createCourseSchema.safeParse({
+      prompt,
     });
 
     if (!parseResult.success) {
@@ -78,6 +68,62 @@ export const createValidation = asyncHandler(
       });
     }
 
+    next();
+  }
+);
+
+export const courseIdValidation = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { courseId } = req.params;
+
+    if (!courseId) {
+      return errorResponse(res, {
+        statusCode: 400,
+        message: "Validation Error",
+        errors: [{ field: "courseId", message: "Course ID is required" }],
+      });
+    }
+
+    const schema = z.object({
+      courseId: z.string().refine(
+        (value: string) => {
+          return mongoose.Types.ObjectId.isValid(value);
+        },
+        {
+          message: "Invalid MongoDB ObjectId",
+        }
+      ),
+    });
+
+    const parseResult = schema.safeParse({
+      courseId,
+    });
+
+    if (!parseResult.success) {
+      const errors = parseResult.error.issues.map((issue) => ({
+        field: issue.path[0],
+        message: issue.message,
+      }));
+      return errorResponse(res, {
+        statusCode: 400,
+        message: "Validation Error",
+        errors,
+      });
+    }
+
+    const courseData = await Course.findOne({
+      _id: courseId,
+      isDeleted: false,
+      createdBy: (req as any).user.id,
+    });
+
+    if (!courseData) {
+      return errorResponse(res, {
+        statusCode: 404,
+        message: "Course not found",
+      });
+    }
+    
     next();
   }
 );

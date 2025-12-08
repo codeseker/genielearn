@@ -1,12 +1,16 @@
 import { Router } from "express";
 import { create, index, remove, show } from "../controllers/course";
-import { createValidation, indexValidation } from "../validations/course";
+import {
+  courseIdValidation,
+  createValidation,
+  indexValidation,
+} from "../validations/course";
 
 const router = Router();
 
 router.route("/all").get(indexValidation, index);
-router.route("/create").post( create);
-router.route("/:courseId/view").get(show);
-router.route("/:courseId/delete").delete(remove);
+router.route("/create").post(createValidation, create);
+router.route("/:courseId/view").get(courseIdValidation, show);
+router.route("/:courseId/delete").delete(courseIdValidation, remove);
 
 export default router;
