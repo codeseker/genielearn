@@ -18,8 +18,8 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/course/:id" element={<CourseDetails />} />
             <Route
-              path="/course/:courseId/module/:modNum/lesson/:lessonNum"
-              element={<Lesson content={data} />}
+              path="/course/:courseId/module/:modId/lesson/:lessonId"
+              element={<Lesson />}
             />
           </Route>
         </Route>

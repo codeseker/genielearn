@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ChevronDown, ChevronRight, BookOpen } from "lucide-react";
 import { useAsyncHandler } from "@/utils/async-handler";
@@ -7,90 +7,88 @@ import { showCourse } from "@/actions/course";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
 
-
 export default function CourseDetails() {
-    const { id } = useParams();
+  const { id } = useParams();
 
-    const user = useSelector((state: RootState) => state.user);
+  const user = useSelector((state: RootState) => state.user);
 
+  const asyncHandler = useAsyncHandler();
+  const safeCourseView = asyncHandler(showCourse); // this wraps showCourse which can have error and will protect it
 
-    const asyncHandler = useAsyncHandler();
-    const safeCourseView = asyncHandler(showCourse); // this wraps showCourse which can have error and will protect it
+  const [course, setCourse] = useState<any>(null);
 
-    const [course, setCourse] = useState<any>(null);
+  const [expanded, setExpanded] = useState<string | null>(null);
 
+  const getCourse = async () => {
+    const res = await safeCourseView(user.token as string, {
+      courseId: id as string,
+    });
+    const data = res?.data;
 
-    const [expanded, setExpanded] = useState<string | null>(null);
+    setCourse(data?.course);
+  };
 
-    const getCourse = async () => {
-        const res = await safeCourseView(user.token as string, {
-            courseId: id as string
-        });
-        const data = res?.data;
-        
-        setCourse(data?.course);
-    }
+  useEffect(() => {
+    if (!user.token || !user.user) return;
 
-    useEffect(() => {
-        if (!user.token || !user.user) return;
+    getCourse();
+  }, [user]);
 
-        getCourse();
+  const toggleModule = (moduleId: string) => {
+    setExpanded((prev) => (prev === moduleId ? null : moduleId));
+  };
 
-    }, [user]);
+  if (!course) {
+    return <>Invalid Id or Course Not found</>;
+  }
 
-    const toggleModule = (moduleId: string) => {
-        setExpanded((prev) => (prev === moduleId ? null : moduleId));
-    };
+  return (
+    <div className="space-y-8">
+      <Card className="bg-[#151515] border-gray-800">
+        <CardHeader>
+          <CardTitle className="text-2xl">{course.title}</CardTitle>
+        </CardHeader>
+      </Card>
 
-    if (!course) {
-        return <>Invalid Id or Course Not found</>;
-    }
+      <div className="space-y-4">
+        {course.modules.map((m: any) => (
+          <Card className="bg-[#151515] border-gray-800" key={m.id}>
+            <CardHeader
+              className="cursor-pointer flex flex-row items-center justify-between"
+              onClick={() => toggleModule(m.id)}
+            >
+              <CardTitle className="flex items-center gap-2 text-lg">
+                {expanded === m.id ? (
+                  <ChevronDown className="w-5 h-5" />
+                ) : (
+                  <ChevronRight className="w-5 h-5" />
+                )}
+                {m.title}
+              </CardTitle>
+            </CardHeader>
 
-    return (
-        <div className="space-y-8">
-            <Card className="bg-[#151515] border-gray-800">
-                <CardHeader>
-                    <CardTitle className="text-2xl">{course.title}</CardTitle>
-                </CardHeader>
-            </Card>
-
-            <div className="space-y-4">
-                {course.modules.map((m: any) => (
-                    <Card
-                        className="bg-[#151515] border-gray-800"
-                        key={m.id}
+            {/* LESSON LIST */}
+            {expanded === m.id && (
+              <CardContent className="space-y-3 animate-in fade-in duration-200">
+                {m.lessons.map((lesson: any) => (
+                  <div
+                    key={lesson._id}
+                    className="flex items-center gap-3 p-3 rounded-md bg-[#1b1b1b] border border-gray-800 hover:bg-[#222] cursor-pointer"
+                  >
+                    <Link
+                      to={`/course/${id}/module/${m.id}/lesson/${lesson._id}`}
+                      className="flex items-center gap-x-1"
                     >
-                        <CardHeader
-                            className="cursor-pointer flex flex-row items-center justify-between"
-                            onClick={() => toggleModule(m.id)}
-                        >
-                            <CardTitle className="flex items-center gap-2 text-lg">
-                                {expanded === m.id ? (
-                                    <ChevronDown className="w-5 h-5" />
-                                ) : (
-                                    <ChevronRight className="w-5 h-5" />
-                                )}
-                                {m.title}
-                            </CardTitle>
-                        </CardHeader>
-
-                        {/* LESSON LIST */}
-                        {expanded === m.id && (
-                            <CardContent className="space-y-3 animate-in fade-in duration-200">
-                                {m.lessons.map((lesson: any) => (
-                                    <div
-                                        key={lesson.id}
-                                        className="flex items-center gap-3 p-3 rounded-md bg-[#1b1b1b] border border-gray-800 hover:bg-[#222] cursor-pointer"
-                                    >
-                                        <BookOpen className="w-4 h-4 text-blue-400" />
-                                        <span>{lesson.title}</span>
-                                    </div>
-                                ))}
-                            </CardContent>
-                        )}
-                    </Card>
+                      <BookOpen className="w-4 h-4 text-blue-400" />
+                      <span>{lesson.title}</span>
+                    </Link>
+                  </div>
                 ))}
-            </div>
-        </div>
-    );
+              </CardContent>
+            )}
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
 }

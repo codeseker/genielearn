@@ -4,24 +4,21 @@ import courseReducer from "./slices/course";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 
-
-const rootReducer = combineReducers({
-  user: userReducer,
-  course: courseReducer
-});
-
-const persistConfig = {
-  key: "root",
+const userPersistConfig = {
+  key: "user",
   storage,
 };
 
-const persistedReducer = persistReducer(persistConfig, rootReducer);
+const rootReducer = combineReducers({
+  user: persistReducer(userPersistConfig, userReducer),
+  course: courseReducer, 
+});
 
 export const store = configureStore({
-  reducer: persistedReducer,
+  reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false, 
+      serializableCheck: false,
     }),
 });
 

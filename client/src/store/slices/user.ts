@@ -7,12 +7,12 @@ interface IInitialState {
     email: string;
     refreshToken?: string | null;
   };
-  token: string | null
+  token: string | null;
 }
 
 const initialState: IInitialState = {
   user: null,
-  token: null
+  token: null,
 };
 
 export const userSlice = createSlice({
@@ -22,11 +22,11 @@ export const userSlice = createSlice({
   reducers: {
     setUser: (state, action) => {
       state.user = action.payload.user;
-      state.token = action.payload.token
+      state.token = action.payload.token;
     },
     clearUser: (state) => {
       state.user = null;
-      state.token = null
+      state.token = null;
     },
   },
 });

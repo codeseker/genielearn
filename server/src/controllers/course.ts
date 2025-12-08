@@ -1,10 +1,7 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../utils/async-handler";
 import { errorResponse, successResponse } from "../utils/api";
-import {
-  coursePrompt,
-  securityChecks,
-} from "../constants/prompts/course";
+import { coursePrompt, securityChecks } from "../constants/prompts/course";
 import { model } from "../config/ai";
 import { Course } from "../types/course";
 import courseModel from "../models/course";
@@ -95,7 +92,11 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
 
   successResponse(res, {
     message: "Course metadata generated successfully",
-    data: { metadata, intent, courseId: courseData._id },
+    data: {
+      title: metadata.title,
+      description: metadata.description,
+      courseId: courseData._id,
+    },
     flag: true,
   });
 

@@ -41,8 +41,8 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
-    secure: true, // set true only in production
-    sameSite: "strict",
+    secure: false, // set true only in production
+    sameSite: "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
@@ -74,8 +74,8 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
-    secure: true, // Use true in production
-    sameSite: "strict",
+    secure: false, // Use true in production
+    sameSite: "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 
@@ -158,19 +158,39 @@ export const refreshToken = asyncHandler(
 
     const newRefreshToken = generateToken({ id: user._id }, "7d");
 
-    await User.findByIdAndUpdate(user._id, { refreshToken: newRefreshToken });
+    const updatedUser = await User.findByIdAndUpdate(
+      user._id,
+      { refreshToken: newRefreshToken },
+      {
+        new: true,
+      }
+    );
+
+    if (!updatedUser) {
+      return errorResponse(res, {
+        statusCode: 500,
+        message: "Something went wrong",
+      });
+    }
+
+    const finalData = {
+      id: updatedUser._id,
+      name: updatedUser.first_name + " " + updatedUser.last_name,
+      email: updatedUser.email,
+      refreshToken: newRefreshToken,
+    };
 
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
-      secure: true, // true in production
-      sameSite: "strict",
+      secure: false, // true in production
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     return successResponse(res, {
       statusCode: 200,
       message: "Token refreshed successfully",
-      data: { token: newAccessToken },
+      data: { token: newAccessToken, user: finalData },
     });
   }
 );

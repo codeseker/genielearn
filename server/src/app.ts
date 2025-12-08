@@ -4,6 +4,7 @@ import { connectDB } from "./db/db";
 import { errorHandler } from "./middlewares/error-handler";
 import router from "./routes/mainRoutes";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 
 const app: Application = express();
 
@@ -12,7 +13,11 @@ const PORT: number = parseInt(process.env.PORT || "8000", 10);
 const NODE_ENV: string = process.env.NODE_ENV || "development";
 
 // Middlewares
-app.use(cors());
+app.use(cookieParser());
+app.use(cors({
+  origin: ["http://localhost:5173", "http://localhost:4173"],
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes

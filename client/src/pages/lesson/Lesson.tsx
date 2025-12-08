@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -6,135 +6,99 @@ import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github-dark.css";
 
 import { Card, CardContent } from "@/components/ui/card";
+import { useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
+import { useAsyncHandler } from "@/utils/async-handler";
+import { generateLessonContent } from "@/actions/lesson";
 
-export default function Lesson({ content }: { content: string }) {
+export default function Lesson() {
+  const user = useSelector((state: RootState) => state.user);
+  const { courseId, modId, lessonId } = useParams();
   const [logged, setLogged] = useState(false);
-  const hasScrolledRef = useRef(false);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const [content, setContent] = useState<string>();
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const asyncHandler = useAsyncHandler();
+  const safeLessonContent = asyncHandler(generateLessonContent);
+
+  const fetchLessonContent = async () => {
+    if (!courseId || !modId || !lessonId || !user.user) return;
+
+    setLoading(true);
+    try {
+      const res = await safeLessonContent(user.token as string, {
+        courseId,
+        moduleId: modId,
+        lessonId,
+      });
+
+      console.log('DATA: ', res?.data);
+
+      setContent(res?.data?.content);
+    } catch (err) {
+      console.error("Failed to fetch lesson content:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const handleScroll = () => {
-      // Mark that user has started scrolling
-      hasScrolledRef.current = true;
-      
-      const scrollTop = window.scrollY || document.documentElement.scrollTop;
-      const viewportHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
-      
-      // Calculate how far down the user has scrolled (0-100%)
-      const scrollPercent = ((scrollTop + viewportHeight) / documentHeight) * 100;
-      
-      console.log("Scrolled %:", scrollPercent.toFixed(1));
-      
-      if (!logged && scrollPercent >= 60) {
-        console.log("🔥 User reached 60% of the page!");
-        setLogged(true);
-      }
-    };
+    fetchLessonContent();
+  }, [user, courseId, modId, lessonId]);
 
-    // Throttle the scroll handler
-    const throttledScroll = () => {
-      if (timeoutRef.current) return;
-      
-      timeoutRef.current = setTimeout(() => {
-        handleScroll();
-        timeoutRef.current = undefined;
-      }, 100); // Adjust throttle time as needed
-    };
-
-    window.addEventListener("scroll", throttledScroll);
-    
-    // Cleanup
-    return () => {
-      window.removeEventListener("scroll", throttledScroll);
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, [logged]);
-
-  // Alternative: Only log after first scroll event
+  // Intersection Observer to detect 60% scroll
   useEffect(() => {
-    let hasScrolled = false;
-    let timeoutId: NodeJS.Timeout;
-
-    const handleScroll = () => {
-      if (!hasScrolled) {
-        hasScrolled = true;
-        return; // Skip first scroll event
-      }
-      
-      const scrollTop = window.scrollY || document.documentElement.scrollTop;
-      const viewportHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
-      
-      const scrollPercent = ((scrollTop + viewportHeight) / documentHeight) * 100;
-      
-      console.log("Scrolled %:", scrollPercent.toFixed(1));
-      
-      if (!logged && scrollPercent >= 60) {
-        console.log("🔥 User reached 60% of the page!");
-        setLogged(true);
-      }
-    };
-
-    // Throttle to avoid too many logs
-    const throttledHandleScroll = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(handleScroll, 100);
-    };
-
-    window.addEventListener("scroll", throttledHandleScroll);
-    
-    return () => {
-      window.removeEventListener("scroll", throttledHandleScroll);
-      clearTimeout(timeoutId);
-    };
-  }, [logged]);
-
-  // Cleaner solution: Use Intersection Observer
-  useEffect(() => {
-    // Create an observer to track when 60% of the content is visible
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            console.log("🔥 60% of lesson content is visible!");
+            console.log("🔥 User reached 60% of lesson content!");
             setLogged(true);
-            observer.disconnect(); // Stop observing after triggering once
+            observer.disconnect();
           }
         });
       },
-      {
-        threshold: 0.6, // Trigger when 60% is visible
-      }
+      { threshold: 0.6 }
     );
 
-    // Create a marker element at 60% of the content height
-    const marker = document.createElement('div');
-    marker.style.position = 'absolute';
-    marker.style.top = '60%';
-    marker.style.left = '0';
-    marker.style.width = '100%';
-    marker.style.height = '1px';
-    marker.style.pointerEvents = 'none';
-    marker.style.opacity = '0';
-
-    // Find the card content to place the marker
     const cardContent = document.querySelector('.prose');
     if (cardContent) {
-      cardContent.style.position = 'relative';
+      (cardContent as any).style.position = 'relative';
+      const marker = document.createElement('div');
+      marker.style.position = 'absolute';
+      marker.style.top = '60%';
+      marker.style.left = '0';
+      marker.style.width = '100%';
+      marker.style.height = '1px';
+      marker.style.pointerEvents = 'none';
+      marker.style.opacity = '0';
+
       cardContent.appendChild(marker);
       observer.observe(marker);
-    }
 
-    return () => {
-      observer.disconnect();
-      if (cardContent && cardContent.contains(marker)) {
-        cardContent.removeChild(marker);
-      }
-    };
-  }, []); // Empty dependency array since this only runs once
+      return () => {
+        observer.disconnect();
+        if (cardContent.contains(marker)) cardContent.removeChild(marker);
+      };
+    }
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="w-full flex justify-center px-4 md:px-6 py-6">
+        <Card className="max-w-4xl w-full shadow-md border dark:border-gray-700">
+          <CardContent className="prose prose-neutral dark:prose-invert lg:prose-lg pt-6">
+            <h1 className="text-4xl font-bold mt-6 mb-4 text-blue-500">
+              Loading...
+            </h1>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!content) return null;
 
   return (
     <div className="w-full flex justify-center px-4 md:px-6 py-6">
@@ -182,9 +146,7 @@ export default function Lesson({ content }: { content: string }) {
               ),
               table: ({ children }) => (
                 <div className="overflow-x-auto my-4 border rounded-md dark:border-gray-700">
-                  <table className="w-full border-collapse table-auto">
-                    {children}
-                  </table>
+                  <table className="w-full border-collapse table-auto">{children}</table>
                 </div>
               ),
               th: ({ children }) => (
@@ -193,9 +155,7 @@ export default function Lesson({ content }: { content: string }) {
                 </th>
               ),
               td: ({ children }) => (
-                <td className="border px-3 py-2 dark:border-gray-700">
-                  {children}
-                </td>
+                <td className="border px-3 py-2 dark:border-gray-700">{children}</td>
               ),
               details: ({ children }) => (
                 <details className="bg-gray-100 dark:bg-gray-800 rounded-md p-3 my-5 shadow-sm">

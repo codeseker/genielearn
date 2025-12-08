@@ -79,7 +79,7 @@ export default function MySidebar() {
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
               {courses && courses.map((item) => {
-                const url = '/course/' + item.id + '/module/1/lesson/1';
+                const url = '/course/' + item.id;
                 const isActive = pathname.startsWith(url);
                 return (
                   <SidebarMenuItem key={item.title}>

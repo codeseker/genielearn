@@ -8,15 +8,10 @@ import lesson from "../models/lesson";
 import course from "../models/course";
 
 export const create = asyncHandler(async (req: Request, res: Response) => {
-  const {
-    courseId,
-    lessonOrder,
-    moduleId,
-    lessonId,
-  } = req.body;
+  const { courseId, moduleId, lessonId } = req.body;
 
   const courseData = await course.findById(courseId);
-  if(!courseData) {
+  if (!courseData) {
     return errorResponse(res, {
       statusCode: 404,
       message: "Course not found",
@@ -62,14 +57,14 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
     return successResponse(res, {
       statusCode: 200,
       message: "Lesson Created Successfully",
-      data: content,
+      data: {content},
     });
   }
 
   const upcomingLessons = ((moduleData as any).lessons ?? [])
     .filter(
       (lesson: any) =>
-        lesson._id.toString() !== lessonId && lesson.order > lessonOrder
+        lesson._id.toString() !== lessonId && lesson.order > lessonData.order
     )
     .sort((a: any, b: any) => a.order - b.order);
 
@@ -77,19 +72,9 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
     courseTitle: courseData.title,
     moduleTitle: moduleData.title,
     lessonTitle: lessonData.title,
-    lessonOrder,
+    lessonOrder: lessonData.order,
     upcomingLessons,
   });
-  
-  // console.log('Course: ', courseData.title);
-  // console.log('Module: ', moduleData.title);
-  // console.log('Lesson: ', lessonData.title);
-
-  // return successResponse(res, {
-  //   statusCode: 200,
-  //   message: "Prompt generated successfully",
-  //   data: prompt,
-  // })
 
   const response = await model.generateContent({
     contents: [
@@ -114,6 +99,6 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
   return successResponse(res, {
     statusCode: 200,
     message: "Lesson created successfully",
-    data: cleaned,
+    data: { content: cleaned },
   });
 });
