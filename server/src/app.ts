@@ -17,7 +17,10 @@ const APP_MODE: string = process.env.APP_MODE || "development";
 app.use(cookieParser());
 app.use(
   cors({
-    origin: [process.env.FRONTEND_URL_LOCAL as string],
+    origin: [
+      process.env.FRONTEND_URL_LOCAL as string,
+      process.env.FRONTEND_URL_PROD as string,
+    ],
     credentials: true,
   }),
 );
