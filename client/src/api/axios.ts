@@ -17,8 +17,13 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
+const APP_MODE = import.meta.env.VITE_APP_MODE;
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_API_URL_LOCAL,
+  baseURL:
+    APP_MODE === "development"
+      ? import.meta.env.VITE_BACKEND_API_URL_LOCAL
+      : import.meta.env.VITE_BACKEND_API_URL_PROD,
   withCredentials: true,
 });
 
