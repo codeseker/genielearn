@@ -5,6 +5,7 @@ import permissionModel from "../models/permission";
 import roleWithPermissionModel from "../models/roleWithPermission";
 import userModel from "../models/user";
 import roleModel from "../models/role";
+import { connectDB } from "../db/db";
 
 export const permissionsList = [
   // USER permissions
@@ -48,11 +49,9 @@ export const rolesList = [
   },
 ];
 
-const MONGO_URI = process.env.MONGO_URI_LOCAL as string;
-
 const seed = async () => {
   try {
-    await mongoose.connect(MONGO_URI);
+    await connectDB();
     console.log("📌 Connected to MongoDB");
 
     // 1️⃣ Seed Permissions
@@ -71,8 +70,7 @@ const seed = async () => {
     // Filter permissions for regular users (read-only + lesson generate access)
     const regularAllowed = permissions.filter(
       (p) =>
-        p.name === "read" ||
-        (p.module === "lesson" && p.name === "generate")
+        p.name === "read" || (p.module === "lesson" && p.name === "generate"),
     );
 
     // 3️⃣ Seed Role-Permissions Mapping
@@ -131,4 +129,3 @@ const seed = async () => {
 };
 
 seed();
-

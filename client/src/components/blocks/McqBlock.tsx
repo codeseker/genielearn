@@ -38,27 +38,31 @@ export default function McqBlock({
               disabled={hasAnswered}
               onClick={() => setSelected(idx)}
               className={`
-                group w-full flex items-center justify-between gap-3
-                rounded-md border px-4 py-3 text-left text-sm
-                transition-all duration-200
-                focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-card
-                ${
-                  !hasAnswered
-                    ? "border-border bg-background hover:bg-accent/40 hover:border-accent"
-                    : "cursor-default"
-                }
-                ${
-                  hasAnswered && isCorrect
-                    ? "border-primary/40 bg-primary/10 text-primary"
-                    : ""
-                }
-                ${
-                  hasAnswered && isWrong
-                    ? "border-destructive/40 bg-destructive/10 text-destructive"
-                    : ""
-                }
-                ${hasAnswered && !isCorrect && !isWrong ? "opacity-60" : ""}
-              `}
+    group w-full flex items-center justify-between gap-3
+    rounded-md border px-4 py-3 text-left text-sm
+    transition-all duration-200
+    focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background
+
+    ${
+      !hasAnswered
+        ? "border-border bg-background hover:bg-accent hover:text-accent-foreground hover:border-accent"
+        : "cursor-default"
+    }
+
+    ${
+      hasAnswered && isCorrect
+        ? "border-primary bg-primary/10 text-primary"
+        : ""
+    }
+
+    ${
+      hasAnswered && isWrong
+        ? "border-destructive bg-destructive/10 text-destructive"
+        : ""
+    }
+
+    ${hasAnswered && !isCorrect && !isWrong ? "opacity-60" : ""}
+  `}
             >
               <span className="flex-1">{opt}</span>
 

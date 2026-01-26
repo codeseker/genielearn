@@ -102,17 +102,6 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
     prerequisites: metadata.prerequisites,
   });
 
-  successResponse(res, {
-    message: "Course metadata generated successfully",
-    data: {
-      title: metadata.title,
-      description: metadata.description,
-      courseId: courseData._id,
-      slug: courseData.slug,
-    },
-    flag: true,
-  });
-
   // Fire-and-forget async processing with timeout protection
   process.nextTick(async () => {
     const timeoutPromise = new Promise((_, reject) =>
@@ -137,6 +126,33 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
             description: mod.description,
             course: courseData._id,
           }));
+
+          successResponse(res, {
+            message: "Course metadata generated successfully",
+            data: {
+              title: metadata.title,
+              description: metadata.description,
+              courseId: courseData._id,
+              slug: courseData.slug,
+              modules: [
+                {
+                  title: json.modules[0].title,
+                  description: json.modules[0].description,
+                  slug: json.modules[0].slug,
+                  lessons: [
+                    {
+                      title: json.modules[0].lessons[0].title,
+                      description: json.modules[0].lessons[0].description,
+                      estimatedMinutes:
+                        json.modules[0].lessons[0].estimatedMinutes,
+                      slug: json.modules[0].lessons[0].slug,
+                    },
+                  ],
+                },
+              ],
+            },
+            flag: true,
+          });
 
           const insertedModules =
             await moduleModel.insertMany(moduleInsertData);
@@ -233,3 +249,82 @@ export const remove = asyncHandler(async (req: Request, res: Response) => {
     message: "Course deleted successfully",
   });
 });
+
+export const coursesWithStats = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = (req as any).user.id;
+
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 5;
+    const skip = (page - 1) * limit;
+
+    const filter = {
+      isDeleted: false,
+      createdBy: userId,
+    };
+
+    const completedLessonIds = await lessonModel
+      .find({ user: userId, completed: true })
+      .distinct("lesson");
+
+    const completedSet = new Set(completedLessonIds.map(String));
+
+    const courses = await courseModel
+      .find(filter)
+      .populate({
+        path: "modules",
+        select: "title order lessons",
+        options: { sort: { order: 1 } },
+        populate: {
+          path: "lessons",
+          select: "title order",
+          options: { sort: { order: 1 } },
+        },
+      })
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const coursesWithStats = courses.map((course: any) => {
+      const allLessons = course.modules.flatMap((m: any) => m.lessons);
+
+      const totalLessons = allLessons.length;
+
+      const completedLessons = allLessons.reduce(
+        (count: number, lesson: any) =>
+          completedSet.has(String(lesson._id)) ? count + 1 : count,
+        0,
+      );
+
+      const progress =
+        totalLessons === 0
+          ? 0
+          : Math.round((completedLessons / totalLessons) * 100);
+
+      return {
+        ...course.toObject(),
+        stats: {
+          totalModules: course.modules.length,
+          totalLessons,
+          completedLessons,
+          progress,
+        },
+      };
+    });
+
+    const totalCourses = await courseModel.countDocuments(filter);
+
+    return successResponse(res, {
+      message: "Courses with stats fetched successfully",
+      data: {
+        courses: coursesWithStats,
+        pagination: {
+          total: totalCourses,
+          page,
+          limit,
+          totalPages: Math.ceil(totalCourses / limit),
+        },
+      },
+    });
+  },
+);

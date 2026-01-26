@@ -6,6 +6,10 @@ interface IInitialState {
     name: string;
     email: string;
     refreshToken?: string | null;
+    avatar?: {
+      _id: string;
+      url: string;
+    } | null;
   };
   token: string | null;
 }

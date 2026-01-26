@@ -11,13 +11,13 @@ import path from "path";
 const app: Application = express();
 
 const PORT: number = parseInt(process.env.PORT || "8000", 10);
-const NODE_ENV: string = process.env.NODE_ENV || "development";
+const APP_MODE: string = process.env.APP_MODE || "development";
 
 // Middlewares
 app.use(cookieParser());
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:4173"],
+    origin: [process.env.FRONTEND_URL_LOCAL as string],
     credentials: true,
   }),
 );
@@ -42,21 +42,12 @@ app.use(errorHandler);
 
 const startServer = async (): Promise<void> => {
   try {
-    const MONGO_URI: string =
-      NODE_ENV === "production"
-        ? (process.env.MONGO_URI_PROD as string)
-        : (process.env.MONGO_URI_LOCAL as string);
-
-    if (!MONGO_URI) {
-      throw new Error("MongoDB connection string is missing.");
-    }
-
-    await connectDB(MONGO_URI);
+    await connectDB();
 
     app.listen(PORT, () => {
       console.log("Connected TO DB: ✅");
       console.log(`Server is running on http://localhost:${PORT}`);
-      console.log(`Environment: ${NODE_ENV}`);
+      console.log(`APP MODE: ${APP_MODE}`);
     });
   } catch (error: unknown) {
     console.error("Failed to start server:", error);

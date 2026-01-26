@@ -1,11 +1,12 @@
 import { api } from "@/api/axios";
 import type { ApiResponse } from "@/types/api-response";
 import type {
+  CoursesWithStatsResponse,
   CreateCourseResponse,
   DeleteCourseResponse,
   MultipleCoursesResponse,
   SingleCourseResponse,
-} from "@/types/course-api/course.types";
+} from "@/types/course-api/course";
 
 export async function indexCourses(): Promise<
   ApiResponse<MultipleCoursesResponse>
@@ -38,5 +39,12 @@ export async function deleteCourse({
   courseId: string;
 }): Promise<ApiResponse<DeleteCourseResponse>> {
   const res = await api.delete(`/course/${courseId}/delete`);
+  return res.data;
+}
+
+export async function coursesWithStats(): Promise<
+  ApiResponse<CoursesWithStatsResponse>
+> {
+  const res = await api.get("/course/stats");
   return res.data;
 }

@@ -37,7 +37,7 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const isMobile = useIsMobile();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [search, setSearch] = useState("");
 
   const { courses } = useCoursesFetch();
@@ -61,7 +61,7 @@ export function AppSidebar() {
           className="fixed left-4 top-4 z-50 lg:hidden"
           onClick={() => setSidebarOpen(true)}
         >
-          <Menu className="h-5 w-5" />
+          <Menu className="h-5 w-5 text-sidebar-foreground" />
         </Button>
       )}
 

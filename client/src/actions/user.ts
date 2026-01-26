@@ -3,11 +3,17 @@ import type { ApiResponse } from "@/types/api-response";
 import { api } from "@/api/axios";
 
 export interface LoginResponse {
-  id: string;
-  name: string;
-  email: string;
-  refreshToken: string;
-  accessToken: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    refreshToken: string;
+    avatar?: {
+      _id: string;
+      url: string;
+    } | null;
+  };
+  token: string;
 }
 
 export async function login(

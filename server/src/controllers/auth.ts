@@ -56,7 +56,9 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 export const login = asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).populate([
+    { path: "avatar", select: "url" },
+  ]);
 
   if (!user) {
     return errorResponse(res, {
@@ -85,7 +87,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     statusCode: 200,
     message: "Login successful",
     data: {
-      user: userData,
+      user: { ...userData, avatar: user.avatar },
       token: accessToken,
     },
   });

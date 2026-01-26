@@ -39,3 +39,12 @@ export interface Course {
   updatedAt: string;
   modules: Module[];
 }
+
+export interface CourseWithStats extends Course {
+  stats: {
+    totalModules: number;
+    totalLessons: number;
+    completedLessons: number;
+    progress: number;
+  };
+}

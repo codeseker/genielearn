@@ -16,17 +16,20 @@ export function useLogin() {
 
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = useCallback(async (data: LoginSchema) => {
-    setLoading(true);
-    const result = await safeLogin(data);
-    setLoading(false);
+  const handleLogin = useCallback(
+    async (data: LoginSchema) => {
+      setLoading(true);
+      const result = await safeLogin(data);
+      setLoading(false);
 
-    if (!result) return;
-    
-    dispatch(setUser(result.data));
-    successToast("Login successful");
-    navigate("/", { replace: true });
-  }, [dispatch, navigate, safeLogin]);
+      if (!result) return;
+
+      dispatch(setUser(result.data));
+      successToast("Login successful");
+      navigate("/", { replace: true });
+    },
+    [dispatch, navigate, safeLogin],
+  );
 
   return {
     loading,

@@ -18,10 +18,8 @@ export default function useDeleteCourse() {
     },
     onSuccess: () => {
       successToast("Course deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["courses-with-stats"] });
       queryClient.invalidateQueries({ queryKey: ["courses"] });
-      navigate("/", {
-        replace: true,
-      });
     },
   });
 
