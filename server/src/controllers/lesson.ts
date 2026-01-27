@@ -1,13 +1,14 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../utils/async-handler";
 import { errorResponse, successResponse } from "../utils/api";
-import { buildYouTubeQuery, lessonPrompt } from "../constants/prompts/lesson";
+import { buildYouTubeQuery } from "../constants/prompts/lesson";
 import { model } from "../config/ai";
 import moduleModel from "../models/modules";
 import lesson from "../models/lesson";
 import course from "../models/course";
 import axios from "axios";
 import { ENDPOINTS } from "../constants/endpoints";
+import { getPrompt } from "../config/get-prompt";
 
 export const create = asyncHandler(async (req: Request, res: Response) => {
   const { courseId, moduleId, lessonId } = req.body;
@@ -139,7 +140,7 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
     (l: any) => l.slug !== lessonId && l.order > lessonData.order,
   );
 
-  const prompt = lessonPrompt({
+  const prompt = getPrompt(model, "lesson", {
     courseTitle: courseData.title,
     moduleTitle: moduleData.title,
     lessonTitle: lessonData.title,

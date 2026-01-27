@@ -1,18 +1,17 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../utils/async-handler";
 import { errorResponse, successResponse } from "../utils/api";
-import { coursePrompt, securityChecks } from "../constants/prompts/course";
 import { model } from "../config/ai";
 import { Course } from "../types/course";
 import courseModel from "../models/course";
 import moduleModel from "../models/modules";
 import lessonModel from "../models/lesson";
-import { validateQuery, validateUserQuery } from "../validations/course";
 import {
   classifyIntent,
   cleanJSON,
   generateMetadata,
 } from "../utils/helper-function";
+import { getPrompt } from "../config/get-prompt";
 
 export const index = asyncHandler(async (req: Request, res: Response) => {
   const {
@@ -113,7 +112,10 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
         timeoutPromise,
         (async () => {
           // Generate course content
-          const prompt = coursePrompt({ ...metadata, userQuery });
+          let prompt = getPrompt(model, "course", {
+            ...metadata,
+            userQuery,
+          });
           const response = await model.generateContent({
             contents: [{ role: "user", parts: [{ text: prompt }] }],
           });

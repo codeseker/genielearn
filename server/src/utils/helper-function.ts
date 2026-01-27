@@ -1,12 +1,8 @@
 import path from "path";
 
-import { GenerativeModel } from "@google/generative-ai";
-import {
-  intentSystemPrompt,
-  metadataSystemPrompt,
-} from "../constants/prompts/course";
 import slugify from "slugify";
 import { Model, Types, QueryFilter } from "mongoose";
+import { getPrompt } from "../config/get-prompt";
 
 async function withRetry(fn: any, retries = 2, delay = 500) {
   let lastError;
@@ -29,7 +25,7 @@ export function cleanJSON(str: string) {
 }
 
 export async function classifyIntent(
-  model: GenerativeModel,
+  model: any,
   userQuery: string,
 ): Promise<{
   intentCategory: string;
@@ -37,9 +33,10 @@ export async function classifyIntent(
   reasoning: string;
 }> {
   return await withRetry(async () => {
+    const intentSystemPrompt = getPrompt(model, "intent");
     const response = await model.generateContent({
       contents: [
-        { role: "user", parts: [{ text: intentSystemPrompt }] },
+        { role: "system", parts: [{ text: intentSystemPrompt }] },
         { role: "user", parts: [{ text: userQuery }] },
       ],
     });
@@ -50,7 +47,7 @@ export async function classifyIntent(
 }
 
 export async function generateMetadata(
-  model: GenerativeModel,
+  model: any,
   intentJSON: any,
 ): Promise<{
   title: string;
@@ -61,9 +58,10 @@ export async function generateMetadata(
   prerequisites: string[];
 }> {
   return await withRetry(async () => {
+    const metadataSystemPrompt = getPrompt(model, "metadata");
     const response = await model.generateContent({
       contents: [
-        { role: "user", parts: [{ text: metadataSystemPrompt }] },
+        { role: "system", parts: [{ text: metadataSystemPrompt }] },
         { role: "user", parts: [{ text: JSON.stringify(intentJSON) }] },
       ],
     });

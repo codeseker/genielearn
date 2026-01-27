@@ -22,8 +22,10 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "express-fileupload": "^1.5.2",
+    "groq-sdk": "^0.37.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^9.0.0",
+    "openai": "^6.16.0",
     "slugify": "^1.6.6",
     "zod": "^4.1.13"
   },

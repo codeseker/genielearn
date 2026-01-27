@@ -1,4 +1,8 @@
-export const securityChecks = `You are a strict, deterministic input-validator system. 
+import { ICourse } from "../../models/course";
+import { ILesson } from "../../models/lesson";
+import { IModule } from "../../models/modules";
+
+export const securityChecksGemini = `You are a strict, deterministic input-validator system. 
 Your ONLY responsibility is to check whether a user query is valid for a course-generation app.
 
 You MUST NOT generate a course, explanation, suggestions, or improvements.
@@ -66,7 +70,7 @@ After all checks:
 Return STRICT JSON only.
 `;
 
-export const intentSystemPrompt = `
+export const intentSystemPromptGemini = `
 You are an Intent Classification Engine for an AI Course Generator.
 
 Your task:
@@ -89,9 +93,15 @@ Output JSON (immutable):
   "primaryTopic": "<short extracted topic>",
   "reasoning": "<1-2 lines>"
 }
+
+STRICT OUTPUT RULES:
+- Output ONLY valid JSON
+- Do NOT include explanations, markdown, or text before or after JSON
+- If you violate this, the response is invalid
+
 `;
 
-export const metadataSystemPrompt = `
+export const metadataSystemPromptGemini = `
 You are a Course Metadata Generation Engine for an AI Course Builder.
 
 Input: JSON from the intent classifier: { intentCategory, primaryTopic, reasoning }
@@ -121,9 +131,16 @@ Output JSON (immutable):
   "prerequisites": [],
   "tags": []
 }
+
+STRICT OUTPUT RULES:
+- Output ONLY valid JSON
+- Do NOT include explanations, markdown, or text before or after JSON
+- If you violate this, the response is invalid
+
+
 `;
 
-export const coursePrompt = (metadata: any) => {
+export const coursePromptGemini = (metadata: any) => {
   const metadataJSON = JSON.stringify(metadata, null, 2);
 
   return `
@@ -220,3 +237,90 @@ USE THE FOLLOWING METADATA (DO NOT MODIFY IT)
 ${metadataJSON}
 `;
 };
+
+export const lessonPromptGemini = ({
+  courseTitle,
+  moduleTitle,
+  lessonTitle,
+  upcomingLessons = [],
+}: {
+  courseTitle: string;
+  moduleTitle: string;
+  lessonTitle: string;
+  upcomingLessons?: { title: string; description: string }[];
+}) => `
+You are an expert curriculum designer and senior software educator.
+
+Your task is to generate a SINGLE lesson in STRICT JSON FORMAT.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONTEXT
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+Course: "${courseTitle}"
+Module: "${moduleTitle}"
+Lesson: "${lessonTitle}"
+
+Upcoming lessons (for narrative continuity only):
+${upcomingLessons.map((l) => `- ${l.title}: ${l.description}`).join("\n")}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+OUTPUT RULES (ABSOLUTELY CRITICAL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Output ONLY raw JSON
+- DO NOT wrap in markdown
+- DO NOT add explanations or comments
+- DO NOT include trailing commas
+- The JSON MUST be valid and parseable
+- Follow the schema EXACTLY
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+REQUIRED JSON SCHEMA
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+{
+  "title": string,
+  "objectives": string[],
+  "content": [
+    {
+      "type": "heading",
+      "text": string
+    },
+    {
+      "type": "paragraph",
+      "text": string
+    },
+    {
+      "type": "code",
+      "language": string,
+      "text": string
+    },
+    {
+      "type": "video",
+      "query": string
+    },
+    {
+      "type": "mcq",
+      "question": string,
+      "options": string[],
+      "answer": number,
+      "explanation": string
+    }
+  ]
+}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONTENT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Start with a heading introducing the lesson
+- Use clear, long-form paragraphs (professional tone)
+- Include a code block ONLY if technically relevant
+- Include exactly ONE video block with a YouTube search query
+- Add 4–5 MCQs at the END of the content
+- MCQs must include explanations
+- Lesson should flow from fundamentals → real-world usage
+- Maintain production-level clarity and depth
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+GENERATE THE JSON NOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+`;
