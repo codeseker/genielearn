@@ -73,3 +73,24 @@ export async function register(
   });
   return res.data;
 }
+
+export interface GoogleAuthResponse {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    refreshToken: string;
+    avatar?: {
+      _id: string;
+      url: string;
+    } | null;
+  };
+  token: string;
+}
+
+export async function googleAuth(
+  code: string,
+): Promise<ApiResponse<GoogleAuthResponse>> {
+  const res = await api.post("/auth/social-login/google", { code });
+  return res.data;
+}

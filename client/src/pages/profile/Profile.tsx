@@ -26,6 +26,8 @@ export default function Profile() {
   const stateUser = useSelector((state: RootState) => state.user);
   const [loading] = useState(false);
 
+  console.log("USER: ", stateUser);
+
   const user = {
     name: stateUser.user?.name,
     email: stateUser.user?.email,

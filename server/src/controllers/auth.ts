@@ -5,7 +5,11 @@ import User from "../models/user";
 import { generateToken, verifyToken } from "../utils/jwt";
 import { hashPassword } from "../utils/bcrypt";
 import Role from "../models/role";
-import { UserStatus } from "../constants/enums/user";
+import { AuthProviders, UserStatus } from "../constants/enums/user";
+import axios from "axios";
+import { ENDPOINTS } from "../constants/endpoints";
+import Upload from "../models/uploads";
+import jwt from "jsonwebtoken";
 
 export const register = asyncHandler(async (req: Request, res: Response) => {
   const { username, email, password, firstName, lastName } = req.body;
@@ -184,6 +188,125 @@ export const refreshToken = asyncHandler(
       statusCode: 200,
       message: "Token refreshed successfully",
       data: { token: newAccessToken, user: finalData },
+    });
+  },
+);
+
+export const socialLoginGoogle = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { code } = req.body;
+
+    if (!code) {
+      return errorResponse(res, {
+        statusCode: 400,
+        message: "Authorization code missing",
+        errors: [{ field: "code", message: "Authorization code missing" }],
+      });
+    }
+
+    const tokenRes = await axios.post(ENDPOINTS.GOOGLE_OAUTH, {
+      code,
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      client_secret: process.env.GOOGLE_CLIENT_SECRET,
+      redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+      grant_type: "authorization_code",
+    });
+
+    const { id_token, access_token } = tokenRes.data as any;
+
+    // 🔐 Validate ID token (minimum safety)
+    const decoded: any = jwt.decode(id_token);
+    if (
+      decoded?.aud !== process.env.GOOGLE_CLIENT_ID ||
+      decoded?.iss !== "https://accounts.google.com"
+    ) {
+      throw new Error("Invalid Google token");
+    }
+
+    const userInfoRes = await axios.get(ENDPOINTS.GOOGLE_USERINFO, {
+      headers: { Authorization: `Bearer ${access_token}` },
+    });
+
+    const {
+      sub: googleId,
+      email,
+      given_name,
+      family_name,
+      picture,
+    } = userInfoRes.data as any;
+
+    let user = await User.findOne({
+      $or: [{ authProvider: "google", authProviderId: googleId }, { email }],
+    });
+
+    if (!user) {
+      user = await User.create({
+        username: email.split("@")[0],
+        first_name: given_name,
+        last_name: family_name,
+        email,
+        status: UserStatus.ACTIVE,
+        authProvider: "google",
+        authProviderId: googleId,
+      });
+    } else if (!user.authProviderId) {
+      user.authProvider = AuthProviders.GOOGLE;
+      user.authProviderId = googleId;
+    }
+
+    const accessToken = generateToken(
+      { id: user._id, email: user.email },
+      "2h",
+    );
+
+    const refreshToken = generateToken({ id: user._id }, "7d");
+
+    user.refreshToken = refreshToken;
+
+    if (picture) {
+      if (user.avatar) {
+        await Upload.findByIdAndUpdate(
+          user.avatar,
+          {
+            url: picture,
+            originalName: "google-avatar",
+            mimeType: "image/*",
+            fileType: "IMAGE",
+            isPublic: true,
+          },
+          { new: true },
+        );
+      } else {
+        const uploadDoc = await Upload.create({
+          url: picture,
+          originalName: "google-avatar",
+          fileType: "IMAGE",
+          ownerType: "USER",
+          owner: user._id,
+          uploadedBy: user._id,
+          isPublic: true,
+        });
+
+        user.avatar = uploadDoc._id as any;
+      }
+    }
+
+    await user.save();
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return successResponse(res, {
+      statusCode: 200,
+      message: "Login successful",
+      data: {
+        user: { ...user.safeUser(), avatar: picture },
+        token: accessToken,
+      },
     });
   },
 );

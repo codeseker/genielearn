@@ -6,8 +6,8 @@ export type UploadFileType = "IMAGE" | "VIDEO" | "DOCUMENT" | "OTHER";
 export interface IUpload extends Document {
   url: string;
   key?: string;
-  mimeType: string;
-  size: number;
+  mimeType?: string;
+  size?: number;
   originalName: string;
   fileType: UploadFileType;
 
@@ -26,8 +26,8 @@ const uploadSchema = new Schema<IUpload>(
     url: { type: String, required: true },
     key: { type: String },
 
-    mimeType: { type: String, required: true },
-    size: { type: Number, required: true },
+    mimeType: { type: String, required: false, default: null },
+    size: { type: Number, required: false, default: null },
     originalName: { type: String, required: true },
 
     fileType: {

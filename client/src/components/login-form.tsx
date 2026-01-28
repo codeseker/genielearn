@@ -18,6 +18,9 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "react-router-dom";
+import { useGoogleLogin } from "@react-oauth/google";
+import { api } from "@/api/axios";
+import useGoogleAuth from "@/hooks/auth/useGoogleAuth";
 
 type LoginFormProps = {
   className?: string;
@@ -45,6 +48,15 @@ export function LoginForm({ className, onSubmit, ...props }: LoginFormProps) {
   } = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
     mode: "onChange",
+  });
+
+  const { mutateAsync: googleAuth } = useGoogleAuth();
+
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      await googleAuth(tokenResponse.code);
+    },
+    flow: "auth-code",
   });
 
   return (
@@ -113,7 +125,12 @@ export function LoginForm({ className, onSubmit, ...props }: LoginFormProps) {
                   Login
                 </Button>
 
-                <Button variant="outline" type="button" className="w-full">
+                <Button
+                  variant="outline"
+                  type="button"
+                  className="w-full cursor-pointer"
+                  onClick={() => handleGoogleLogin()}
+                >
                   Continue with Google
                 </Button>
 
