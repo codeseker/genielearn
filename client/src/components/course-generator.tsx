@@ -36,7 +36,7 @@ export function CourseGenerator() {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-8rem)] flex-col items-center justify-center bg-background px-6 py-12 lg:px-8">
+    <div className="flex w-full max-w-2xl flex-col items-center space-y-10">
       <div className="w-full max-w-2xl space-y-10">
         {/* Header */}
         <div className="space-y-5 text-center">

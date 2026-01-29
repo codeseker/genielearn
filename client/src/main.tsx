@@ -10,6 +10,7 @@ import { Toaster } from "react-hot-toast";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeSync } from "./hooks/use-theme.ts";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import ScrollToTop from "./components/scroll-to-top.tsx";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ createRoot(document.getElementById("root")!).render(
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <BrowserRouter>
+            <ScrollToTop />
             <ThemeSync />
             <App />
             <Toaster />

@@ -22,7 +22,7 @@ const registerSchema = z
     message: "Passwords do not match",
   });
 
-type RegisterSchema = z.infer<typeof registerSchema>;
+export type RegisterSchema = z.infer<typeof registerSchema>;
 
 export function SignupForm() {
   const {

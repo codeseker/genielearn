@@ -11,18 +11,22 @@ import McqBlock from "@/components/blocks/McqBlock";
 import useUpdateLesson from "@/hooks/lessons/useUpdateLesson";
 import { useState } from "react";
 import LessonCompleteCelebration from "@/components/lesson-celebration";
+import { useNavigate } from "react-router-dom";
 
 interface LessonContentProps {
   lesson: Lesson;
   module: Module;
   courseTitle: string;
+  courseSlug: string;
 }
 
 export function LessonContent({
   lesson,
   module,
   courseTitle,
+  courseSlug,
 }: LessonContentProps) {
+  const navigate = useNavigate();
   const { lessonData, isLoading, isError, error } = useFetchLesson();
   const [showCelebration, setShowCelebration] = useState(false);
   const [lessonCompleted, setLessonCompleted] = useState(lesson.isCompleted);
@@ -39,6 +43,30 @@ export function LessonContent({
     }
 
     setLessonCompleted(!lessonCompleted);
+  };
+
+  const handleNextLesson = () => {
+    if (
+      !lessonData?.navigation.nextModuleSlug ||
+      !lessonData?.navigation.nextLessonSlug
+    ) {
+      return;
+    }
+    navigate(
+      `/course/${courseSlug}/module/${lessonData?.navigation.nextModuleSlug}/lesson/${lessonData?.navigation.nextLessonSlug}`,
+    );
+  };
+
+  const handlePrevLesson = () => {
+    if (
+      !lessonData?.navigation.prevModuleSlug ||
+      !lessonData?.navigation.previousLessonSlug
+    ) {
+      return;
+    }
+    navigate(
+      `/course/${courseSlug}/module/${lessonData?.navigation.prevModuleSlug}/lesson/${lessonData?.navigation.previousLessonSlug}`,
+    );
   };
 
   if (showCelebration) {
@@ -152,9 +180,16 @@ export function LessonContent({
 
       {/* Footer Actions */}
       <div className="mt-12 flex flex-col gap-3 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
-        <Button variant="default" className="cursor-pointer">
-          Previous Lesson
-        </Button>
+        {lessonData?.navigation?.prevModuleSlug != null &&
+          lessonData?.navigation?.previousLessonSlug != null && (
+            <Button
+              variant="default"
+              className="cursor-pointer"
+              onClick={handlePrevLesson}
+            >
+              Previous Lesson
+            </Button>
+          )}
 
         <Button
           variant="default"
@@ -164,9 +199,20 @@ export function LessonContent({
           {lessonCompleted ? "Mark as Incomplete" : "Mark as Complete"}
         </Button>
 
-        <Button variant="default" className="cursor-pointer">
-          Next Lesson
-        </Button>
+        {lessonData?.navigation?.nextModuleSlug != null &&
+          lessonData?.navigation?.nextLessonSlug != null && (
+            <Button
+              variant="default"
+              disabled={
+                lessonData?.navigation?.nextLessonSlug === null &&
+                lessonData?.navigation?.nextModuleSlug === null
+              }
+              className="cursor-pointer"
+              onClick={handleNextLesson}
+            >
+              Next Lesson
+            </Button>
+          )}
       </div>
     </div>
   );

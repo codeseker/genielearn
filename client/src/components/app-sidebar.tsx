@@ -4,7 +4,6 @@ import {
   BookOpen,
   ChevronRight,
   LogOut,
-  Menu,
   SunMoon,
   User,
   X,
@@ -33,8 +32,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "@/store/slices/user";
 import type { RootState } from "@/store/store";
 import { getImageUrl } from "@/utils/getImageUrl";
+import { MobileHeader } from "./mobile-header";
 
-export function AppSidebar() {
+export function AppSidebar({ mobileTitle }: { mobileTitle?: string }) {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -52,20 +52,15 @@ export function AppSidebar() {
   }, [courses, search]);
 
   const handleToggleTheme = () => dispatch(toggleTheme());
-
   const handleLogout = () => dispatch(clearUser());
 
   return (
     <>
       {!sidebarOpen && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="fixed left-4 top-4 z-50 lg:hidden"
-          onClick={() => setSidebarOpen(true)}
-        >
-          <Menu className="h-5 w-5 text-sidebar-foreground" />
-        </Button>
+        <MobileHeader
+          title={mobileTitle ?? "Dashboard"}
+          onMenuClick={() => setSidebarOpen(true)}
+        />
       )}
 
       {sidebarOpen && isMobile && (
@@ -77,13 +72,14 @@ export function AppSidebar() {
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 h-screen w-72 border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-transform duration-300 lg:relative lg:translate-x-0",
+          "z-40 h-full w-72 border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-transform duration-300",
+          "fixed inset-y-0 left-0 lg:static lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
         <div className="flex h-full flex-col">
           {/* LOGO */}
-          <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-6">
+          <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-6 shrink-0">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-primary shadow-sm">
                 <BookOpen className="h-5 w-5 text-sidebar-primary-foreground" />
@@ -103,8 +99,8 @@ export function AppSidebar() {
             </Button>
           </div>
 
-          {/* CREATE COURSE CTA */}
-          <div className="p-4">
+          {/* CREATE COURSE */}
+          <div className="p-4 shrink-0">
             <Button
               className="w-full justify-start gap-2 cursor-pointer"
               onClick={() => navigate("/")}
@@ -116,64 +112,69 @@ export function AppSidebar() {
 
           <Separator />
 
-          {/* SEARCH */}
-          <div className="p-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search courses..."
-                className="pl-9"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-          </div>
-
-          {/* COURSE LIST */}
-          <div className="flex-1 overflow-hidden px-2">
-            <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/60">
-              Your Courses
-            </p>
-
-            <ScrollArea className="h-[calc(100vh-330px)] pr-2">
-              <div className="space-y-1">
-                {filteredCourses.length === 0 ? (
-                  <p className="px-3 py-4 text-sm text-sidebar-foreground/60">
-                    No matching courses
-                  </p>
-                ) : (
-                  filteredCourses.map((course) => {
-                    const isActive = location.pathname.includes(
-                      `/course/${course.slug}`,
-                    );
-
-                    return (
-                      <Link
-                        key={course.id}
-                        to={`/course/${course.slug}/module/${course.moduleSlug}/lesson/${course.lessonSlug}`}
-                        onClick={() => isMobile && setSidebarOpen(false)}
-                        className={cn(
-                          "group flex items-center justify-between rounded-md px-3 py-2.5 text-sm font-medium transition-all",
-                          "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                          isActive &&
-                            "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm",
-                        )}
-                      >
-                        <span className="truncate max-w-[170px]">
-                          {course.title}
-                        </span>
-                        <ChevronRight className="h-4 w-4 opacity-40 group-hover:opacity-70" />
-                      </Link>
-                    );
-                  })
-                )}
+          {/* SCROLLABLE MIDDLE */}
+          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+            {/* SEARCH */}
+            <div className="p-4 shrink-0">
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search courses..."
+                  className="pl-9"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
               </div>
-            </ScrollArea>
+            </div>
+
+            <Separator />
+
+            {/* COURSE LIST */}
+            <div className="flex-1 pt-4 min-h-0 px-2">
+              <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/60">
+                Your Courses
+              </p>
+
+              <ScrollArea className="h-full pr-2">
+                <div className="space-y-1">
+                  {filteredCourses.length === 0 ? (
+                    <p className="px-3 py-4 text-sm text-sidebar-foreground/60">
+                      No matching courses
+                    </p>
+                  ) : (
+                    filteredCourses.map((course) => {
+                      const isActive = location.pathname.includes(
+                        `/course/${course.slug}`,
+                      );
+
+                      return (
+                        <Link
+                          key={course.id}
+                          to={`/course/${course.slug}/module/${course.moduleSlug}/lesson/${course.lessonSlug}`}
+                          onClick={() => isMobile && setSidebarOpen(false)}
+                          className={cn(
+                            "group flex items-center justify-between rounded-md px-3 py-2.5 text-sm font-medium transition-all",
+                            "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                            isActive &&
+                              "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm",
+                          )}
+                        >
+                          <span className="truncate max-w-[170px]">
+                            {course.title}
+                          </span>
+                          <ChevronRight className="h-4 w-4 opacity-40 group-hover:opacity-70" />
+                        </Link>
+                      );
+                    })
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
           </div>
 
           {/* PROFILE */}
           {user?.user && (
-            <div className="border-t border-sidebar-border p-4">
+            <div className="border-t border-sidebar-border p-4 shrink-0">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -182,12 +183,10 @@ export function AppSidebar() {
                   >
                     {(() => {
                       const { name, email, avatar } = user.user;
-
                       const avatarUrl = avatar?.url
                         ? getImageUrl(avatar.url)
                         : undefined;
 
-                      console.log("AVATAR: ", avatarUrl);
                       const initials =
                         name
                           ?.split(" ")

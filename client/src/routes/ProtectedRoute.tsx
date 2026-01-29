@@ -1,30 +1,39 @@
-import React, { useEffect } from "react";
-import { useSelector, shallowEqual } from "react-redux";
-import { useNavigate, useLocation, Outlet } from "react-router-dom";
-import type { RootState } from "../store/store";
+import { AppSidebar } from "@/components/app-sidebar";
+import { cn } from "@/lib/utils";
+import type { RootState } from "@/store/store";
+import { useEffect } from "react";
+import { shallowEqual, useSelector } from "react-redux";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
-function ProtectedRoute() {
-    const navigate = useNavigate();
-    const location = useLocation();
+export default function ProtectedRoute() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const user = useSelector((state: RootState) => state.user, shallowEqual);
 
-    const user = useSelector(
-        (state: RootState) => state.user,
-        shallowEqual
-    );
+  useEffect(() => {
+    if (!user.user && location.pathname !== "/login") {
+      navigate("/login", { replace: true });
+    }
+  }, [user, navigate, location.pathname]);
 
+  if (!user) return null;
 
-    useEffect(() => {
-        if (!user.user && location.pathname !== "/login") {
-            navigate("/login", { replace: true });
-            return;
-        }
+  return (
+    <div className="flex h-screen overflow-hidden bg-background">
+      <AppSidebar />
 
-        const { token } = user;
-    }, [user, navigate, location.pathname]);
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="h-14 lg:hidden shrink-0" />
 
-    if (!user) return null;
-
-    return <Outlet />;
+        <main
+          className={cn(
+            "flex-1 overflow-y-auto",
+            location.pathname === "/" && "overflow-hidden",
+          )}
+        >
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
 }
-
-export default React.memo(ProtectedRoute);

@@ -32,6 +32,8 @@ export interface LessonContentResponse {
   navigation: {
     nextModuleSlug: string | null;
     nextLessonSlug: string | null;
+    prevModuleSlug: string | null;
+    previousLessonSlug: string | null;
   };
   ytVideos: string[];
 }
