@@ -162,12 +162,13 @@ REQUIRED JSON STRUCTURE
 =========================
 COURSE DESIGN RULES
 =========================
-- Generate EXACTLY 6 to 8 main modules
+- Generate EXACTLY 8 main modules
 - If prerequisites exist:
   - Add module-0: "Prerequisites Crash Course"
   - 2–4 lessons explaining prerequisites only
 - Main modules start from module-1
-- Each module must have 3–5 lessons
+- Each module must have 5 lessons
+- Each module must have order: 1, 2, 3, 4, 5, 6, 7, 8
 - Lessons must feel like professional blog chapters
 - Strong progression: Beginner → Intermediate → Advanced → Capstone
 - Use strong action verbs (Build, Analyze, Implement, Optimize, Architect)

@@ -100,86 +100,68 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
     intentCategory: intent.intentCategory,
     prerequisites: metadata.prerequisites,
   });
+  let prompt = getPrompt(model, "course", {
+    ...metadata,
+    userQuery,
+  });
+  const response = await model.generateContent({
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+  });
 
-  // Fire-and-forget async processing with timeout protection
-  process.nextTick(async () => {
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("Course processing timeout")), 30000),
-    );
+  const raw = response.response.text();
+  const json: Course = JSON.parse(cleanJSON(raw));
 
-    try {
-      await Promise.race([
-        timeoutPromise,
-        (async () => {
-          // Generate course content
-          let prompt = getPrompt(model, "course", {
-            ...metadata,
-            userQuery,
-          });
-          const response = await model.generateContent({
-            contents: [{ role: "user", parts: [{ text: prompt }] }],
-          });
+  console.log("Module: ", json.modules);
+  const moduleInsertData = json.modules.map((mod, idx) => ({
+    title: mod.title,
+    description: mod.description,
+    course: courseData._id,
+    order: idx + 1,
+  }));
 
-          const raw = response.response.text();
-          const json: Course = JSON.parse(cleanJSON(raw));
+  const insertedModules = await moduleModel.insertMany(moduleInsertData);
 
-          const moduleInsertData = json.modules.map((mod) => ({
-            title: mod.title,
-            description: mod.description,
-            course: courseData._id,
-          }));
+  const moduleMap = new Map<string, string>();
+  insertedModules.forEach((m) => {
+    moduleMap.set(m.title, m._id.toString());
+  });
 
-          successResponse(res, {
-            message: "Course metadata generated successfully",
-            data: {
-              title: metadata.title,
-              description: metadata.description,
-              courseId: courseData._id,
-              slug: courseData.slug,
-              modules: [
-                {
-                  title: json.modules[0].title,
-                  description: json.modules[0].description,
-                  slug: json.modules[0].slug,
-                  lessons: [
-                    {
-                      title: json.modules[0].lessons[0].title,
-                      description: json.modules[0].lessons[0].description,
-                      estimatedMinutes:
-                        json.modules[0].lessons[0].estimatedMinutes,
-                      slug: json.modules[0].lessons[0].slug,
-                    },
-                  ],
-                },
-              ],
+  const lessonsInsertData = json.modules.flatMap((mod) =>
+    mod.lessons.map((les) => ({
+      title: les.title,
+      module: moduleMap.get(mod.title),
+      order: les.order,
+      description: les.description,
+      estimatedMinutes: les.estimatedMinutes,
+    })),
+  );
+
+  await lessonModel.insertMany(lessonsInsertData);
+
+  return successResponse(res, {
+    message: "Course metadata generated successfully",
+    data: {
+      title: metadata.title,
+      description: metadata.description,
+      courseId: courseData._id,
+      slug: courseData.slug,
+      modules: [
+        {
+          title: json.modules[0].title,
+          description: json.modules[0].description,
+          slug: json.modules[0].slug,
+          lessons: [
+            {
+              title: json.modules[0].lessons[0].title,
+              description: json.modules[0].lessons[0].description,
+              estimatedMinutes: json.modules[0].lessons[0].estimatedMinutes,
+              slug: json.modules[0].lessons[0].slug,
             },
-            flag: true,
-          });
-
-          const insertedModules =
-            await moduleModel.insertMany(moduleInsertData);
-
-          const moduleMap = new Map<string, string>();
-          insertedModules.forEach((m) => {
-            moduleMap.set(m.title, m._id.toString());
-          });
-
-          const lessonsInsertData = json.modules.flatMap((mod) =>
-            mod.lessons.map((les) => ({
-              title: les.title,
-              module: moduleMap.get(mod.title),
-              order: les.order,
-              description: les.description,
-              estimatedMinutes: les.estimatedMinutes,
-            })),
-          );
-
-          await lessonModel.insertMany(lessonsInsertData);
-        })(),
-      ]);
-    } catch (error: any) {
-      console.error("Course processing failed:", error);
-    }
+          ],
+        },
+      ],
+    },
+    flag: true,
   });
 });
 

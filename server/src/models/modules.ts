@@ -6,6 +6,7 @@ export interface IModule extends Document {
   slug: string;
   description: string;
   course: mongoose.Types.ObjectId;
+  order: number;
   isDeleted: boolean;
   isCompleted: boolean;
 }
@@ -16,6 +17,7 @@ const moduleSchema: Schema<IModule> = new Schema<IModule>(
     slug: { type: String, required: true, unique: true, index: true },
     description: { type: String, required: false },
     course: { type: mongoose.Types.ObjectId, ref: "Course", required: true },
+    order: { type: Number, required: false },
     isDeleted: { type: Boolean, default: false },
     isCompleted: { type: Boolean, default: false },
   },

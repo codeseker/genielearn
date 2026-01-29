@@ -73,26 +73,82 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
     isEmpty = true;
   }
 
-  /* ---------------- ADD: NEXT LESSON LOGIC ---------------- */
-
   const lessons = ((moduleData as any).lessons ?? []).sort(
     (a: any, b: any) => a.order - b.order,
   );
 
   const currentIndex = lessons.findIndex((l: any) => l.slug === lessonId);
 
-  const nextLessonInSameModule =
-    currentIndex !== -1 ? lessons[currentIndex + 1] : null;
+  // PREV (same module)
+  const previousLessonInSameModule =
+    currentIndex > 0 ? lessons[currentIndex - 1] : null;
 
+  // NEXT (same module)
+  const nextLessonInSameModule =
+    currentIndex !== -1 && currentIndex < lessons.length - 1
+      ? lessons[currentIndex + 1]
+      : null;
+
+  let prevModuleSlug: string | null = null;
+  let previousLessonSlug: string | null = null;
   let nextModuleSlug: string | null = null;
   let nextLessonSlug: string | null = null;
+
+  if (previousLessonInSameModule) {
+    prevModuleSlug = (moduleData as any).slug;
+    previousLessonSlug = previousLessonInSameModule.slug;
+  }
 
   if (nextLessonInSameModule) {
     nextModuleSlug = (moduleData as any).slug;
     nextLessonSlug = nextLessonInSameModule.slug;
   }
 
-  /* -------------------------------------------------------- */
+  if (!previousLessonInSameModule) {
+    const prevModule = await moduleModel
+      .findOne({
+        course: courseData._id,
+        isDeleted: false,
+        order: { $lt: (moduleData as any).order },
+      })
+      .sort({ order: -1 })
+      .select("slug")
+      .populate({
+        path: "lessons",
+        match: { isDeleted: false },
+        options: { sort: { order: -1 }, limit: 1 }, 
+        select: "slug",
+      })
+      .lean();
+
+    if (prevModule && (prevModule as any).lessons?.length) {
+      prevModuleSlug = prevModule.slug;
+      previousLessonSlug = (prevModule as any).lessons[0].slug;
+    }
+  }
+
+  if (!nextLessonInSameModule) {
+    const nextModule = await moduleModel
+      .findOne({
+        course: courseData._id,
+        isDeleted: false,
+        order: { $gt: (moduleData as any).order },
+      })
+      .sort({ order: 1 })
+      .select("slug")
+      .populate({
+        path: "lessons",
+        match: { isDeleted: false },
+        options: { sort: { order: 1 }, limit: 1 }, 
+        select: "slug",
+      })
+      .lean();
+
+    if (nextModule && (nextModule as any).lessons?.length) {
+      nextModuleSlug = nextModule.slug;
+      nextLessonSlug = (nextModule as any).lessons[0].slug;
+    }
+  }
 
   if (!isEmpty) {
     return successResponse(res, {
@@ -103,6 +159,8 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
         navigation: {
           nextModuleSlug,
           nextLessonSlug,
+          prevModuleSlug,
+          previousLessonSlug,
         },
         ytVideos: lessonData.ytVideos,
       },
@@ -209,6 +267,8 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
       navigation: {
         nextModuleSlug,
         nextLessonSlug,
+        prevModuleSlug,
+        previousLessonSlug,
       },
       ytVideos: allIds,
     },
