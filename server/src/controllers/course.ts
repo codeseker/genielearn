@@ -111,7 +111,6 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
   const raw = response.response.text();
   const json: Course = JSON.parse(cleanJSON(raw));
 
-  console.log("Module: ", json.modules);
   const moduleInsertData = json.modules.map((mod, idx) => ({
     title: mod.title,
     description: mod.description,

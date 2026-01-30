@@ -282,26 +282,89 @@ CONTENT DEPTH & QUALITY RULES
 - Maintain a serious, professional educational tone
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-STRUCTURE RULES
+STRUCTURE RULES (CRITICAL)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-- Start with a heading introducing the lesson
-- Follow with multiple long-form paragraphs (theory-focused)
-- Include MULTIPLE code blocks where technically relevant
-- Code examples must be realistic and instructive
-- Include EXACTLY ONE video block (YouTube search query)
-- End with 5 to 10 MCQs
-- MCQs must test understanding, not memorization
-- Each MCQ MUST include a clear explanation
-- Flow must be: fundamentals → deep concepts → real-world usage → validation (MCQs)
+1. Start with a heading introducing the lesson
+2. Follow with multiple content blocks in logical order
+3. Use heading blocks for major section titles
+4. Use paragraph blocks for explanatory text ONLY (NO markdown)
+5. Use code blocks for all code examples
+6. Include EXACTLY ONE video block (YouTube search query)
+7. End with 5 to 10 MCQs
+8. Flow must be: fundamentals → deep concepts → real-world usage → validation (MCQs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-MCQ RULES
+BLOCK TYPE SPECIFIC RULES
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+HEADING BLOCKS:
+- Use for major section titles only
+- Do NOT use markdown (no #, ##, ###)
+- Keep headings concise and descriptive
+- Example: {"type": "heading", "text": "Block-Scoped Declarations: let & const"}
+
+PARAGRAPH BLOCKS:
+- Use ONLY for explanatory text
+- NO markdown formatting (no **bold**, *italic*, ### headers)
+- NO code snippets (use code blocks instead)
+- Write in complete, well-structured paragraphs
+- Each paragraph should focus on one main idea
+- Example: {"type": "paragraph", "text": "Prior to ES6, the only way to declare variables was with the var keyword, which is function-scoped and subject to hoisting."}
+
+CODE BLOCKS:
+- Use for ALL code examples
+- Include proper language specification
+- Code must be syntactically correct
+- Include comments for clarity
+- Example: {"type": "code", "language": "javascript", "text": "const x = 10;\\nconsole.log(x);"}
+
+VIDEO BLOCK:
+- Include EXACTLY ONE video block
+- Use a general YouTube search query
+- Query should be relevant to the lesson
+- Example: {"type": "video", "query": "Modern JavaScript ES6+ tutorial"}
+
+MCQ BLOCKS:
 - Minimum: 5 questions
 - Maximum: 10 questions
 - Options must be plausible
 - Only ONE correct answer per question
+- Answer must be index number (0-based)
 - Explanations must clearly justify the correct choice
+- Example: {"type": "mcq", "question": "What does const do?", "options": ["A", "B", "C", "D"], "answer": 1, "explanation": "Because..."}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+MARKDOWN PROHIBITION
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+- STRICTLY FORBIDDEN in paragraph text: #, ##, ###, **, *, _, \`, \`\`\`, [], (), etc.
+- Paragraphs must be plain text only
+- All formatting must be achieved through proper block structure
+- If you need a subsection, use a heading block
+- If you need code, use a code block
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMMON MISTAKES TO AVOID
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. DO NOT put markdown headings (###) in paragraph blocks
+2. DO NOT put code in paragraph blocks (use code blocks)
+3. DO NOT include backticks or markdown in JSON strings
+4. DO NOT create nested JSON structures
+5. DO NOT exceed 10 MCQs
+6. DO NOT forget the single video block
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+OUTPUT VALIDATION CHECKLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+Before outputting, verify:
+✓ JSON is valid and parseable
+✓ No markdown in any text fields
+✓ Paragraphs contain only plain text
+✓ Headings are separate blocks, not in paragraphs
+✓ Code is in code blocks only
+✓ Exactly one video block exists
+✓ 5-10 MCQ blocks at the end
+✓ Answer indexes are 0-based and valid
+✓ All required fields are present
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 FINAL INSTRUCTION

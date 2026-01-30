@@ -36,10 +36,10 @@ export function CourseGenerator() {
   };
 
   return (
-    <div className="flex w-full max-w-2xl flex-col items-center space-y-10">
+    <div className="flex w-full max-w-2xl flex-col space-y-8 lg:space-y-6">
       <div className="w-full max-w-2xl space-y-10">
         {/* Header */}
-        <div className="space-y-5 text-center">
+        <div className="space-y-5 text-center lg:space-y-4">
           <div className="inline-flex items-center justify-center rounded-full bg-primary/10 p-4 shadow-sm">
             <Sparkles className="h-8 w-8 text-primary" />
           </div>
@@ -95,7 +95,7 @@ export function CourseGenerator() {
         </Card>
 
         {/* Quick Tips */}
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-3 lg:gap-3">
           {[
             {
               title: "Be Specific",

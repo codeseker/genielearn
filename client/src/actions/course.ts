@@ -8,10 +8,18 @@ import type {
   SingleCourseResponse,
 } from "@/types/course-api/course";
 
-export async function indexCourses(): Promise<
+export async function indexCourses({
+  page, 
+  limit = 15,
+  search,
+}: {
+  page: number;
+  limit?: number;
+  search?: string;
+}): Promise<
   ApiResponse<MultipleCoursesResponse>
 > {
-  const res = await api.get("/course/all");
+  const res = await api.get(`/course/all?page=${page}&limit=${limit}&search=${search}`);
   return res.data;
 }
 

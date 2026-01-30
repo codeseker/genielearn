@@ -12,8 +12,10 @@ import useUpdateLesson from "@/hooks/lessons/useUpdateLesson";
 import { useEffect, useState } from "react";
 import LessonCompleteCelebration from "@/components/lesson-celebration";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Check } from "lucide-react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import { LessonStickyFooter } from "@/components/lesson-footer";
+import { errorToast } from "@/utils/toaster";
 
 interface LessonContentProps {
   lesson: Lesson;
@@ -33,6 +35,7 @@ export function LessonContent({
   const [showCelebration, setShowCelebration] = useState<boolean>(false);
   const [lessonCompleted, setLessonCompleted] = useState<boolean>(false);
   const { mutateAsync: updateLesson } = useUpdateLesson();
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
 
   useEffect(() => {
     setLessonCompleted(lesson.isCompleted);
@@ -84,10 +87,22 @@ export function LessonContent({
   }
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="space-y-4 text-center">
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="text-sm text-muted-foreground">Loading lesson…</p>
+      <div className="mx-auto w-full max-w-5xl px-4 py-10 lg:px-8 animate-pulse">
+        <div className="mb-10 space-y-5">
+          <div className="h-4 w-40 rounded bg-muted" />
+          <div className="h-8 w-3/4 rounded bg-muted" />
+          <div className="flex gap-6">
+            <div className="h-4 w-24 rounded bg-muted" />
+            <div className="h-4 w-32 rounded bg-muted" />
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="h-24 w-full rounded-lg bg-muted" />
+          <div className="h-40 w-full rounded-lg bg-muted" />
+          <div className="h-24 w-5/6 rounded-lg bg-muted" />
+          <div className="h-56 w-full rounded-lg bg-muted" />
+          <div className="h-28 w-2/3 rounded-lg bg-muted" />
         </div>
       </div>
     );
@@ -103,6 +118,81 @@ export function LessonContent({
       </div>
     );
   }
+
+  const handleGeneratePDF = async () => {
+    const original = document.getElementById("lesson-pdf-content");
+    if (!original) return;
+
+    const isDarkMode = document.documentElement.classList.contains("dark");
+    const bgColor = isDarkMode ? "#0b1220" : "#f8fafc";
+    const textColor = isDarkMode ? "#e2e8f0" : "#0f172a";
+    const borderColor = isDarkMode
+      ? "rgba(226,232,240,0.18)"
+      : "rgba(15,23,42,0.15)";
+
+    setIsGeneratingPdf(true);
+
+    await new Promise((r) => setTimeout(r, 50));
+
+    const clone = original.cloneNode(true) as HTMLElement;
+
+    clone.querySelectorAll("*").forEach((el) => {
+      const element = el as HTMLElement;
+      element.style.color = textColor;
+      element.style.backgroundColor = "transparent";
+      element.style.borderColor = borderColor;
+      element.style.boxShadow = "none";
+    });
+
+    clone.style.backgroundColor = bgColor;
+    clone.style.padding = "24px";
+    clone.style.width = original.offsetWidth + "px";
+
+    clone.style.position = "fixed";
+    clone.style.left = "-9999px";
+    clone.style.top = "0";
+
+    document.body.appendChild(clone);
+
+    try {
+      const canvas = await html2canvas(clone, {
+        scale: 1.5,
+        useCORS: true,
+        backgroundColor: bgColor,
+        logging: false,
+      });
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.9);
+
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`${lesson.title}.pdf`);
+    } catch (error: any) {
+      errorToast("Failed to generate PDF.");
+      console.error(error);
+    } finally {
+      document.body.removeChild(clone);
+      setIsGeneratingPdf(false);
+    }
+  };
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-10 lg:px-8">
@@ -125,11 +215,13 @@ export function LessonContent({
             <span>15 min read</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <CheckCircle2 className="h-4 w-4 text-primary" />
+            <CheckCircle2
+              className={`h-4 w-4 ${lessonCompleted ? "text-green-600" : "text-muted-foreground"}`}
+            />
             {lessonCompleted ? (
-              <span className="text-destructive">Completed</span>
+              <span className="text-green-600">Completed</span>
             ) : (
-              <span className="text-accent-foreground">Not completed</span>
+              <span className="text-muted-foreground">Not completed</span>
             )}
           </div>
         </div>
@@ -137,41 +229,43 @@ export function LessonContent({
 
       {/* Lesson Body */}
       <div className="space-y-7">
-        {Array.isArray(lessonData?.content) &&
-          lessonData.content.map((block, i) => {
-            switch (block.type) {
-              case "code":
-                return (
-                  <CodeBlock
-                    key={`code-${i}`}
-                    language={block.language}
-                    code={block.text}
-                  />
-                );
+        <div id="lesson-pdf-content" className="sapce-y-7">
+          {Array.isArray(lessonData?.content) &&
+            lessonData.content.map((block, i) => {
+              switch (block.type) {
+                case "code":
+                  return (
+                    <CodeBlock
+                      key={`code-${i}`}
+                      language={block.language}
+                      code={block.text}
+                    />
+                  );
 
-              case "paragraph":
-                return <ParagraphBlock key={`p-${i}`} text={block.text} />;
+                case "paragraph":
+                  return <ParagraphBlock key={`p-${i}`} text={block.text} />;
 
-              case "mcq":
-                return (
-                  <McqBlock
-                    key={`mcq-${i}`}
-                    answer={block.answer}
-                    explanation={block.explanation}
-                    options={block.options}
-                    question={block.question}
-                  />
-                );
+                case "mcq":
+                  return (
+                    <McqBlock
+                      key={`mcq-${i}`}
+                      answer={block.answer}
+                      explanation={block.explanation}
+                      options={block.options}
+                      question={block.question}
+                    />
+                  );
 
-              case "heading":
-                return (
-                  <HeadingBlock key={`h-${i}`} level={2} text={block.text} />
-                );
+                case "heading":
+                  return (
+                    <HeadingBlock key={`h-${i}`} level={2} text={block.text} />
+                  );
 
-              default:
-                return null;
-            }
-          })}
+                default:
+                  return null;
+              }
+            })}
+        </div>
 
         {/* Videos */}
         {lessonData?.ytVideos && lessonData?.ytVideos?.length > 0 && (
@@ -189,7 +283,9 @@ export function LessonContent({
         onCompleteLesson={handleCompleteLesson}
         lessonCompleted={lessonCompleted}
         hasPrevLesson={true}
+        onGeneratePDF={handleGeneratePDF}
         hasNextLesson={true}
+        isGeneratingPdf={isGeneratingPdf}
       />
     </div>
   );

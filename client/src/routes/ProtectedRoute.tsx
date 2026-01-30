@@ -18,6 +18,10 @@ export default function ProtectedRoute() {
 
   if (!user) return null;
 
+  const noScrollRoutes = ["/"];
+
+  const shouldDisableScroll = noScrollRoutes.includes(location.pathname);
+
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <AppSidebar />
@@ -28,7 +32,7 @@ export default function ProtectedRoute() {
         <main
           className={cn(
             "flex-1 overflow-y-auto",
-            location.pathname === "/" && "overflow-hidden",
+            shouldDisableScroll ? "lg:overflow-hidden" : "",
           )}
         >
           <Outlet />

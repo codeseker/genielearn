@@ -32,11 +32,6 @@ export function MobileHeader({
         <Menu className="h-5 w-5" />
       </Button>
 
-      {/* CENTER: Title */}
-      <h1 className="absolute left-1/2 -translate-x-1/2 text-sm font-semibold">
-        {title}
-      </h1>
-
       {/* RIGHT: Optional slot */}
       <div className="flex items-center">
         {rightSlot ?? <div className="w-9" />}

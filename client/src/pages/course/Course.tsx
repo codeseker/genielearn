@@ -1,6 +1,4 @@
 import { useNavigate } from "react-router-dom";
-
-import { AppSidebar } from "@/components/app-sidebar";
 import { CourseNavbar } from "@/components/course-navbar";
 import { LessonContent } from "@/pages/lesson/Lesson";
 import useFetchSingleCourse from "@/hooks/courses/useFetchSingleCourse";
@@ -43,10 +41,31 @@ export default function CoursePage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="space-y-4 text-center">
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="text-sm text-muted-foreground">Loading course…</p>
+      <div className="flex flex-1 flex-col overflow-hidden animate-pulse">
+        <div className="h-16 border-b bg-background px-6 flex items-center justify-between">
+          <div className="h-6 w-40 rounded bg-muted" />
+          <div className="flex items-center gap-4">
+            <div className="h-8 w-24 rounded bg-muted" />
+            <div className="h-8 w-8 rounded-full bg-muted" />
+          </div>
+        </div>
+
+        <div className="mx-auto w-full max-w-5xl px-4 py-10 lg:px-8 space-y-8">
+          <div className="h-4 w-56 rounded bg-muted" />
+
+          <div className="h-10 w-3/4 rounded bg-muted" />
+
+          <div className="flex gap-6">
+            <div className="h-4 w-24 rounded bg-muted" />
+            <div className="h-4 w-32 rounded bg-muted" />
+          </div>
+
+          <div className="space-y-6 pt-4">
+            <div className="h-24 w-full rounded-lg bg-muted" />
+            <div className="h-40 w-full rounded-lg bg-muted" />
+            <div className="h-28 w-5/6 rounded-lg bg-muted" />
+            <div className="h-56 w-full rounded-lg bg-muted" />
+          </div>
         </div>
       </div>
     );
@@ -62,14 +81,12 @@ export default function CoursePage() {
         selectedLesson={selectedLesson}
       />
 
-      <main className="flex-1 overflow-y-auto bg-background">
-        <LessonContent
-          lesson={selectedLesson}
-          module={selectedModule}
-          courseTitle={course!.title}
-          courseSlug={course!.slug}
-        />
-      </main>
+      <LessonContent
+        lesson={selectedLesson}
+        module={selectedModule}
+        courseTitle={course!.title}
+        courseSlug={course!.slug}
+      />
     </div>
   );
 }

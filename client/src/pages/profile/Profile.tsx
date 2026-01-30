@@ -18,7 +18,7 @@ import type { RootState } from "@/store/store";
 import { getImageUrl } from "@/utils/getImageUrl";
 import useFetchCoursesWithStats from "@/hooks/courses/useFetchCoursesWithStats";
 import useDeleteCourse from "@/hooks/courses/useDeleteCourse";
-import { Loader2, BookOpen, Trophy, Clock } from "lucide-react";
+import { Loader2, BookOpen, Trophy, Clock, Upload } from "lucide-react";
 import useAvatarUpload from "@/hooks/user/useAvatarUpload";
 
 export default function Profile() {
@@ -107,38 +107,33 @@ export default function Profile() {
               </>
             )}
 
-            <div className="flex flex-wrap items-center gap-3 justify-center md:justify-start pt-2">
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2 md:justify-start">
+              {/* Hidden file input */}
               <Input
-                accept="image/*"
-                onChange={handleFileChange}
                 id="avatar-upload"
                 type="file"
+                accept="image/*"
+                onChange={handleFileChange}
                 className="hidden"
               />
 
-              {/* Modern Button */}
+              {/* Trigger */}
               <Label htmlFor="avatar-upload" className="cursor-pointer">
                 <Button
-                  variant="default"
-                  size="sm"
                   asChild
-                  className="flex items-center gap-2 px-4 py-2 rounded-md shadow-sm hover:shadow-md transition-shadow duration-200 bg-primary text-white hover:bg-primary/90"
+                  size="sm"
+                  className="
+        flex items-center gap-2
+        rounded-md
+        bg-primary text-primary-foreground
+        shadow-sm
+        transition-all
+        hover:bg-primary/90 hover:shadow-md
+        focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
+      "
                 >
-                  <span className="flex items-center gap-1">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
+                  <span>
+                    <Upload className="h-4 w-4" />
                     Change Avatar
                   </span>
                 </Button>

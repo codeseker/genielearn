@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   BookOpen,
@@ -41,15 +41,41 @@ export function AppSidebar({ mobileTitle }: { mobileTitle?: string }) {
   const isMobile = useIsMobile();
   const user = useSelector((state: RootState) => state.user);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [search, setSearch] = useState("");
 
-  const { courses } = useCoursesFetch();
+  const {
+    courses,
+    isLoading,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+    search,
+    setSearch,
+  } = useCoursesFetch();
 
-  const filteredCourses = useMemo(() => {
-    return courses.filter((c) =>
-      c.title.toLowerCase().includes(search.toLowerCase()),
+  useEffect(() => {
+    const viewport = document.querySelector(
+      "[data-radix-scroll-area-viewport]",
     );
-  }, [courses, search]);
+
+    if (!viewport) return;
+
+    const onScroll = () => {
+      if (!hasNextPage || isFetchingNextPage) return;
+
+      const { scrollTop, scrollHeight, clientHeight } = viewport;
+
+      if (scrollHeight - scrollTop - clientHeight < 80) {
+        fetchNextPage();
+      }
+    };
+
+    viewport.addEventListener("scroll", onScroll);
+    return () => viewport.removeEventListener("scroll", onScroll);
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  useEffect(() => {
+    if (isMobile) setSidebarOpen(false);
+  }, [location.pathname, isMobile]);
 
   const handleToggleTheme = () => dispatch(toggleTheme());
   const handleLogout = () => dispatch(clearUser());
@@ -72,7 +98,7 @@ export function AppSidebar({ mobileTitle }: { mobileTitle?: string }) {
 
       <aside
         className={cn(
-          "z-40 h-full w-72 border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-transform duration-300",
+          "z-40 h-dvh w-72 border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-transform duration-300",
           "fixed inset-y-0 left-0 lg:static lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
         )}
@@ -112,7 +138,7 @@ export function AppSidebar({ mobileTitle }: { mobileTitle?: string }) {
 
           <Separator />
 
-          {/* SCROLLABLE MIDDLE */}
+          {/* MIDDLE AREA */}
           <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
             {/* SEARCH */}
             <div className="p-4 shrink-0">
@@ -129,27 +155,29 @@ export function AppSidebar({ mobileTitle }: { mobileTitle?: string }) {
 
             <Separator />
 
-            {/* COURSE LIST */}
-            <div className="flex-1 pt-4 min-h-0 px-2">
-              <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/60">
+            {/* COURSES SECTION */}
+            <div className="flex-1 min-h-0 flex flex-col px-2 pt-4">
+              <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/60 shrink-0">
                 Your Courses
               </p>
 
-              <ScrollArea className="h-full pr-2">
-                <div className="space-y-1">
-                  {filteredCourses.length === 0 ? (
+              <ScrollArea className="flex-1 min-h-0 pr-2">
+                <div className="space-y-1 pb-4 px-1">
+                  {courses.length === 0 && !isLoading ? (
                     <p className="px-3 py-4 text-sm text-sidebar-foreground/60">
                       No matching courses
                     </p>
                   ) : (
-                    filteredCourses.map((course) => {
+                    courses.map((course) => {
+                      if (!course) return null;
+
                       const isActive = location.pathname.includes(
                         `/course/${course.slug}`,
                       );
 
                       return (
                         <Link
-                          key={course.id}
+                          key={`${course.id}-${course.lessonId}`}
                           to={`/course/${course.slug}/module/${course.moduleSlug}/lesson/${course.lessonSlug}`}
                           onClick={() => isMobile && setSidebarOpen(false)}
                           className={cn(
@@ -166,6 +194,12 @@ export function AppSidebar({ mobileTitle }: { mobileTitle?: string }) {
                         </Link>
                       );
                     })
+                  )}
+
+                  {isFetchingNextPage && (
+                    <div className="py-3 text-center text-xs text-muted-foreground">
+                      Loading more courses...
+                    </div>
                   )}
                 </div>
               </ScrollArea>
