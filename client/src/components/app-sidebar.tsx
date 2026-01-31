@@ -112,7 +112,7 @@ export function AppSidebar({ mobileTitle }: { mobileTitle?: string }) {
                 <BookOpen className="h-5 w-5 text-sidebar-primary-foreground" />
               </div>
               <span className="text-lg font-semibold text-sidebar-primary">
-                CourseHub
+                GenieLearn
               </span>
             </div>
 
