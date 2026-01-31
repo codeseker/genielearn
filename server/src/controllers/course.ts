@@ -12,6 +12,7 @@ import {
   generateMetadata,
 } from "../utils/helper-function";
 import { getPrompt } from "../config/get-prompt";
+import { validateUserQuery } from "../validations/course";
 
 export const index = asyncHandler(async (req: Request, res: Response) => {
   const {
@@ -77,15 +78,17 @@ export const index = asyncHandler(async (req: Request, res: Response) => {
 export const create = asyncHandler(async (req: Request, res: Response) => {
   const { prompt: userQuery } = req.body;
 
-  // Validate user query against security checks
-  // const checks = await validateUserQuery(model, securityChecks, userQuery);
+  const securityChecks = getPrompt(model, "security");
 
-  // if (!checks.isValid) {
-  //   return errorResponse(res, {
-  //     message: "Invalid user query from AI model",
-  //     errors: checks.reasons,
-  //   });
-  // }
+  // Validate user query against security checks
+  const checks = await validateUserQuery(model, securityChecks, userQuery);
+
+  if (!checks.isValid) {
+    return errorResponse(res, {
+      message: "Invalid user query from AI model",
+      errors: checks.reasons,
+    });
+  }
 
   const intent = await classifyIntent(model, userQuery);
   const metadata = await generateMetadata(model, intent);

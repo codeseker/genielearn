@@ -107,6 +107,7 @@ const seed = async () => {
         email: "system@admin.com",
         password: hashedAdminPass,
         status: "active",
+        authProvider: "local",
       },
       {
         username: "john",
@@ -115,6 +116,7 @@ const seed = async () => {
         email: "regular@user.com",
         password: hashedRegularPass,
         status: "active",
+        authProvider: "local",
       },
     ]);
 

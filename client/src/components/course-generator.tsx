@@ -46,6 +46,7 @@ export function CourseGenerator() {
       onError: () => {
         clearTimeout(slowTimer);
         setShowSlowState(false);
+        setCourseName("");
       },
     });
   };

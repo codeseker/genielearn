@@ -38,6 +38,21 @@ app.use(
 app.use(express.json());
 
 // Routes
+app.use("/api/v1", (req, res, next) => {
+  const start = Date.now();
+
+  console.log(`➡️  ${req.method} ${req.originalUrl}`);
+
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    console.log(
+      `⬅️  ${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms`,
+    );
+  });
+
+  next();
+});
+
 app.use("/api/v1", router);
 
 // Error Handling Middleware

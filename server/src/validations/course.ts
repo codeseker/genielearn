@@ -5,6 +5,7 @@ import { z } from "zod";
 import { GenerativeModel } from "@google/generative-ai";
 import Course from "../models/course";
 import mongoose from "mongoose";
+import { AIModel } from "../types/ai";
 
 export const indexValidation = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -238,7 +239,7 @@ export function validateQuery(query: string): {
 }
 
 export async function validateUserQuery(
-  model: GenerativeModel,
+  model: AIModel,
   securityChecks: string,
   userQuery: string,
 ): Promise<{ isValid: boolean; reasons: string[] }> {
@@ -246,7 +247,7 @@ export async function validateUserQuery(
     const checks = await model.generateContent({
       contents: [
         {
-          role: "user",
+          role: "system",
           parts: [{ text: securityChecks }],
         },
         {
@@ -254,16 +255,9 @@ export async function validateUserQuery(
           parts: [{ text: userQuery }],
         },
       ],
-      generationConfig: {
-        temperature: 0,
-        topK: 1,
-        topP: 1,
-        maxOutputTokens: 256,
-      },
     });
 
-    const responseText =
-      checks.response.candidates?.[0]?.content?.parts?.[0]?.text;
+    const responseText = checks.response.text();
 
     if (!responseText) {
       return {
@@ -276,12 +270,7 @@ export async function validateUserQuery(
 
     // ---- Safe JSON extraction ----
     try {
-      // Many models wrap JSON in ```json ... ```
-      const cleaned = responseText
-        .replace(/```json/g, "")
-        .replace(/```/g, "")
-        .trim();
-      json = JSON.parse(cleaned);
+      json = JSON.parse(responseText);
     } catch (err) {
       return {
         isValid: false,
