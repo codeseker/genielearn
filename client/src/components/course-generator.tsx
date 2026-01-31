@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Sparkles, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -14,16 +12,40 @@ import {
 } from "@/components/ui/card";
 import useCreateCourse from "@/hooks/courses/useCreateCourse";
 
+const loadingMessages = [
+  "Designing your course structure...",
+  "Organizing modules for better learning flow...",
+  "Crafting lessons and key outcomes...",
+  "Aligning difficulty and pacing...",
+  "Almost there, polishing the curriculum...",
+];
+
 export function CourseGenerator() {
   const [courseName, setCourseName] = useState("");
+  const [showSlowState, setShowSlowState] = useState(false);
+  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+
   const { mutate, isPending } = useCreateCourse();
 
   const handleGenerate = () => {
     if (!courseName.trim()) return;
 
+    setShowSlowState(false);
+    setLoadingMessageIndex(0);
+
+    const slowTimer = setTimeout(() => {
+      setShowSlowState(true);
+    }, 5000);
+
     mutate(courseName, {
       onSuccess: () => {
         setCourseName("");
+        clearTimeout(slowTimer);
+        setShowSlowState(false);
+      },
+      onError: () => {
+        clearTimeout(slowTimer);
+        setShowSlowState(false);
       },
     });
   };
@@ -34,6 +56,16 @@ export function CourseGenerator() {
       handleGenerate();
     }
   };
+
+  useEffect(() => {
+    if (!showSlowState) return;
+
+    const interval = setInterval(() => {
+      setLoadingMessageIndex((prev) => (prev + 1) % loadingMessages.length);
+    }, 2500);
+
+    return () => clearInterval(interval);
+  }, [showSlowState]);
 
   return (
     <div className="flex w-full max-w-2xl flex-col space-y-8 lg:space-y-6">
@@ -91,6 +123,23 @@ export function CourseGenerator() {
                 )}
               </Button>
             </div>
+
+            {isPending && showSlowState && (
+              <div className="mt-6 space-y-5">
+                <div className="relative h-6 overflow-hidden text-center">
+                  <div
+                    key={loadingMessageIndex}
+                    className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground animate-message"
+                  >
+                    {loadingMessages[loadingMessageIndex]}
+                  </div>
+                </div>
+
+                <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
+                  <div className="absolute inset-0 bg-linear-to-r from-transparent via-primary/60 to-transparent animate-shimmer" />
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 

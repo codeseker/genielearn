@@ -5,13 +5,12 @@ const ScrollToTop = () => {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    const scrollContainer = document.getElementById("lessonDiv");
+    const container = document.getElementById("lesson-scroll-container");
 
-    if (scrollContainer) {
-      scrollContainer.scrollTop = 0;
+    if (container) {
+      container.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
     } else {
-      // fallback
-      window.scrollTo(0, 0);
+      window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
     }
   }, [pathname]);
 

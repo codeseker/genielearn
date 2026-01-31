@@ -129,7 +129,7 @@ export const refreshToken = asyncHandler(
     const decoded = verifyToken(token);
     if (!decoded) {
       return errorResponse(res, {
-        statusCode: 403,
+        statusCode: 401,
         message: "Invalid refresh token",
       });
     }
@@ -144,7 +144,7 @@ export const refreshToken = asyncHandler(
     const user = await User.findById(decoded.id);
     if (!user || user.refreshToken !== token) {
       return errorResponse(res, {
-        statusCode: 403,
+        statusCode: 401,
         message: "Refresh token not found or expired",
       });
     }
@@ -215,7 +215,6 @@ export const socialLoginGoogle = asyncHandler(
 
     const { id_token, access_token } = tokenRes.data as any;
 
-    // 🔐 Validate ID token (minimum safety)
     const decoded: any = jwt.decode(id_token);
     if (
       decoded?.aud !== process.env.GOOGLE_CLIENT_ID ||

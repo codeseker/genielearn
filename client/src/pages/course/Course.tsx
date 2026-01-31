@@ -1,12 +1,14 @@
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { CourseNavbar } from "@/components/course-navbar";
 import { LessonContent } from "@/pages/lesson/Lesson";
 import useFetchSingleCourse from "@/hooks/courses/useFetchSingleCourse";
 
 import { useCourseNavigation } from "@/hooks/courses/useCourseNavigation";
+import { useEffect } from "react";
 
 export default function CoursePage() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const {
     courseData: course,
@@ -16,6 +18,10 @@ export default function CoursePage() {
   } = useFetchSingleCourse();
 
   const { selectedModule, selectedLesson } = useCourseNavigation(course);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location]);
 
   if (isError || error) {
     return (

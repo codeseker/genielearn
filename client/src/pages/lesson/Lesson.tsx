@@ -146,7 +146,7 @@ export function LessonContent({
 
     clone.style.backgroundColor = bgColor;
     clone.style.padding = "24px";
-    clone.style.width = original.offsetWidth + "px";
+    clone.style.width = "794px";
 
     clone.style.position = "fixed";
     clone.style.left = "-9999px";
@@ -171,8 +171,8 @@ export function LessonContent({
       const imgWidth = pageWidth;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-      let heightLeft = imgHeight;
       let position = 0;
+      let heightLeft = imgHeight;
 
       pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
@@ -282,9 +282,15 @@ export function LessonContent({
         onNextLesson={handleNextLesson}
         onCompleteLesson={handleCompleteLesson}
         lessonCompleted={lessonCompleted}
-        hasPrevLesson={true}
+        hasPrevLesson={
+          lessonData?.navigation?.prevModuleSlug != null &&
+          lessonData?.navigation?.previousLessonSlug != null
+        }
         onGeneratePDF={handleGeneratePDF}
-        hasNextLesson={true}
+        hasNextLesson={
+          lessonData?.navigation?.nextModuleSlug != null &&
+          lessonData?.navigation?.nextLessonSlug != null
+        }
         isGeneratingPdf={isGeneratingPdf}
       />
     </div>

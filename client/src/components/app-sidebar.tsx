@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   BookOpen,
@@ -9,6 +9,7 @@ import {
   X,
   PlusCircle,
   Search,
+  Loader2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -163,7 +164,11 @@ export function AppSidebar({ mobileTitle }: { mobileTitle?: string }) {
 
               <ScrollArea className="flex-1 min-h-0 pr-2">
                 <div className="space-y-1 pb-4 px-1">
-                  {courses.length === 0 && !isLoading ? (
+                  {isLoading ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    </div>
+                  ) : courses.length === 0 ? (
                     <p className="px-3 py-4 text-sm text-sidebar-foreground/60">
                       No matching courses
                     </p>
