@@ -2,6 +2,7 @@ import type { LoginSchema } from "@/components/login-form";
 import type { ApiResponse } from "@/types/api-response";
 import { api } from "@/api/axios";
 import type { RegisterSchema } from "@/components/signup-form";
+import axios from "axios";
 
 export interface LoginResponse {
   user: {
@@ -51,10 +52,18 @@ export interface RefreshUserResponse {
 export async function refreshUser(
   refreshToken: string | null | undefined,
 ): Promise<ApiResponse<RefreshUserResponse>> {
-  const res = await api.post(
+  if (!refreshToken) {
+    throw new Error("No refresh token");
+  }
+
+  const res = await axios.post(
     "/auth/refresh",
     { refreshToken },
     {
+      baseURL:
+        import.meta.env.VITE_APP_MODE === "development"
+          ? import.meta.env.VITE_BACKEND_API_URL_LOCAL
+          : import.meta.env.VITE_BACKEND_API_URL_PROD,
       withCredentials: true,
     },
   );
@@ -96,7 +105,7 @@ export async function googleAuth(
 }
 
 export interface IUploadAvatarResponse {
-  _id: string
+  _id: string;
   url: string;
 }
 

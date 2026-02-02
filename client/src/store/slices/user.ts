@@ -1,3 +1,5 @@
+import { SUCCESS } from "@/api/messages/success";
+import { successToast } from "@/utils/toaster";
 import { createSlice } from "@reduxjs/toolkit";
 
 interface IInitialState {
@@ -31,6 +33,7 @@ export const userSlice = createSlice({
     clearUser: (state) => {
       state.user = null;
       state.token = null;
+      successToast(SUCCESS.LOGOUT_SUCCESS);
     },
     setAvatar: (state, action) => {
       if (state.user) {

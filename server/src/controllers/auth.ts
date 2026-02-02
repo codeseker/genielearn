@@ -10,6 +10,7 @@ import axios from "axios";
 import { ENDPOINTS } from "../constants/endpoints";
 import Upload from "../models/uploads";
 import jwt from "jsonwebtoken";
+import { ERROR } from "../utils/error";
 
 export const register = asyncHandler(async (req: Request, res: Response) => {
   const { username, email, password, firstName, lastName } = req.body;
@@ -21,6 +22,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     return errorResponse(res, {
       statusCode: 500,
       message: "User role not found. Please contact support.",
+      errorCode: ERROR.USER_ROLE_NOT_FOUND,
     });
   }
 
@@ -37,18 +39,21 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 
   const accessToken = generateToken(
     { id: createdUser._id, email: email },
-    "2h",
+    process.env.ACCESS_TOKEN_EXPIRES_IN,
   );
 
-  const refreshToken = generateToken({ id: createdUser._id }, "7d");
+  const refreshToken = generateToken(
+    { id: createdUser._id },
+    process.env.REFRESH_TOKEN_EXPIRES_IN,
+  );
 
   User.findByIdAndUpdate(createdUser._id, { refreshToken });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
-    secure: false, // set true only in production
-    sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+    secure: Boolean(process.env.REFRESH_COOKIE_SECURE),
+    sameSite: process.env.REFRESH_COOKIE_SAMESITE as "lax" | "strict" | "none",
+    maxAge: Number(process.env.REFRESH_COOKIE_MAX_AGE),
   });
 
   return successResponse(res, {
@@ -70,20 +75,27 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
       statusCode: 404,
       message: "User not found",
       errors: [{ field: "email", message: "User not found" }],
+      errorCode: ERROR.USER_NOT_FOUND
     });
   }
 
-  const accessToken = generateToken({ id: user._id, email: user.email }, "2h");
+  const accessToken = generateToken(
+    { id: user._id, email: email },
+    process.env.ACCESS_TOKEN_EXPIRES_IN,
+  );
 
-  const refreshToken = generateToken({ id: user._id }, "7d");
+  const refreshToken = generateToken(
+    { id: user._id },
+    process.env.REFRESH_TOKEN_EXPIRES_IN,
+  );
 
   await User.findByIdAndUpdate(user._id, { refreshToken });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
-    secure: false, // Use true in production
-    sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    secure: Boolean(process.env.REFRESH_COOKIE_SECURE),
+    sameSite: process.env.REFRESH_COOKIE_SAMESITE as "lax" | "strict" | "none",
+    maxAge: Number(process.env.REFRESH_COOKIE_MAX_AGE),
   });
 
   const userData = user.safeUser();
@@ -104,7 +116,7 @@ export const logout = asyncHandler(async (req: Request, res: Response) => {
 
   res.clearCookie("refreshToken", {
     httpOnly: true,
-    secure: true, // Use true in production
+    secure: Boolean(process.env.REFRESH_COOKIE_SECURE),
     sameSite: "strict",
   });
 
@@ -123,6 +135,7 @@ export const refreshToken = asyncHandler(
       return errorResponse(res, {
         statusCode: 401,
         message: "Refresh token is missing",
+        errorCode: ERROR.REFRESH_TOKEN_NOT_FOUND
       });
     }
 
@@ -131,6 +144,7 @@ export const refreshToken = asyncHandler(
       return errorResponse(res, {
         statusCode: 401,
         message: "Invalid refresh token",
+        errorCode: ERROR.REFRESH_TOKEN_INVALID
       });
     }
 
@@ -138,6 +152,7 @@ export const refreshToken = asyncHandler(
       return errorResponse(res, {
         statusCode: 401,
         message: "Unauthorized: Invalid token payload",
+        errorCode: ERROR.TOKEN_INVALID
       });
     }
 
@@ -146,15 +161,19 @@ export const refreshToken = asyncHandler(
       return errorResponse(res, {
         statusCode: 401,
         message: "Refresh token not found or expired",
+        errorCode: ERROR.REFRESH_TOKEN_NOT_FOUND
       });
     }
 
     const newAccessToken = generateToken(
       { id: user._id, email: user.email },
-      "2h",
+      process.env.ACCESS_TOKEN_EXPIRES_IN,
     );
 
-    const newRefreshToken = generateToken({ id: user._id }, "7d");
+    const newRefreshToken = generateToken(
+      { id: user._id },
+      process.env.REFRESH_TOKEN_EXPIRES_IN,
+    );
 
     const updatedUser = await User.findByIdAndUpdate(
       user._id,
@@ -166,7 +185,7 @@ export const refreshToken = asyncHandler(
 
     if (!updatedUser) {
       return errorResponse(res, {
-        statusCode: 500,
+        statusCode: 401,
         message: "Something went wrong",
       });
     }
@@ -180,9 +199,12 @@ export const refreshToken = asyncHandler(
 
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
-      secure: false, // true in production
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      secure: Boolean(process.env.REFRESH_COOKIE_SECURE),
+      sameSite: process.env.REFRESH_COOKIE_SAMESITE as
+        | "lax"
+        | "strict"
+        | "none",
+      maxAge: Number(process.env.REFRESH_COOKIE_MAX_AGE),
     });
 
     return successResponse(res, {
@@ -202,6 +224,7 @@ export const socialLoginGoogle = asyncHandler(
         statusCode: 400,
         message: "Authorization code missing",
         errors: [{ field: "code", message: "Authorization code missing" }],
+        errorCode: ERROR.AUTHORIZATION_CODE_MISSING
       });
     }
 
@@ -256,10 +279,13 @@ export const socialLoginGoogle = asyncHandler(
 
     const accessToken = generateToken(
       { id: user._id, email: user.email },
-      "2h",
+      process.env.ACCESS_TOKEN_EXPIRES_IN,
     );
 
-    const refreshToken = generateToken({ id: user._id }, "7d");
+    const refreshToken = generateToken(
+      { id: user._id },
+      process.env.REFRESH_TOKEN_EXPIRES_IN,
+    );
 
     user.refreshToken = refreshToken;
 
@@ -283,6 +309,8 @@ export const socialLoginGoogle = asyncHandler(
           return errorResponse(res, {
             statusCode: 500,
             message: "Something went wrong",
+            errors: [{ field: "avatar", message: "Something went wrong" }],
+            errorCode: ERROR.INTERNAL_SERVER_ERROR
           });
         }
 
@@ -302,6 +330,8 @@ export const socialLoginGoogle = asyncHandler(
           return errorResponse(res, {
             statusCode: 500,
             message: "Something went wrong",
+            errors: [{ field: "avatar", message: "Something went wrong" }],
+            errorCode: ERROR.INTERNAL_SERVER_ERROR
           });
         }
 
@@ -314,9 +344,12 @@ export const socialLoginGoogle = asyncHandler(
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      secure: Boolean(process.env.REFRESH_COOKIE_SECURE),
+      sameSite: process.env.REFRESH_COOKIE_SAMESITE as
+        | "lax"
+        | "strict"
+        | "none",
+      maxAge: Number(process.env.REFRESH_COOKIE_MAX_AGE),
     });
 
     return successResponse(res, {

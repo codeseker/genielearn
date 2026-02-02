@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { errorToast } from "@/utils/toaster";
+import { ERROR_MESSAGES } from "@/api/messages/error";
 
 export function useAsyncHandler() {
   const navigate = useNavigate();
@@ -14,10 +15,11 @@ export function useAsyncHandler() {
         return await fn(...args);
       } catch (err: any) {
         const statusCode = err?.response?.status || 500;
+        const errorCode = err?.response?.data?.errorCode;
         const msg =
+          ERROR_MESSAGES[errorCode] ||
           err?.response?.data?.message ||
-          err?.message ||
-          "Something went wrong";
+          "Something went wrong.";
 
         if (statusCode === 403) {
           errorToast("You don't have permission to do that.");

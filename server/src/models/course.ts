@@ -1,5 +1,4 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
-import { generateUniqueSlug } from "../utils/helper-function";
 
 export interface ICourse extends Document {
   title: string;
@@ -38,17 +37,6 @@ const courseSchema: Schema<ICourse> = new Schema<ICourse>(
   },
 );
 
-courseSchema.pre<ICourse>("validate", async function (next) {
-  if (!this.isModified("title")) return;
-
-  const Model = this.constructor as Model<ICourse>;
-
-  this.slug = await generateUniqueSlug({
-    model: Model,
-    title: this.title,
-    id: this._id.toString(),
-  });
-});
 
 courseSchema.set("toJSON", {
   virtuals: true,

@@ -1,5 +1,4 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
-import { generateUniqueSlug } from "../utils/helper-function";
 
 export interface IModule extends Document {
   title: string;
@@ -28,17 +27,6 @@ const moduleSchema: Schema<IModule> = new Schema<IModule>(
   },
 );
 
-moduleSchema.pre<IModule>("validate", async function (next) {
-  if (!this.isModified("title")) return;
-
-  const Model = this.constructor as Model<IModule>;
-
-  this.slug = await generateUniqueSlug({
-    model: Model,
-    title: this.title,
-    id: this._id.toString(),
-  });
-});
 
 moduleSchema.virtual("lessons", {
   ref: "Lesson",

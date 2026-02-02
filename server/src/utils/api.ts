@@ -28,10 +28,12 @@ export const errorResponse = (
     statusCode = 500,
     message = "Something went wrong",
     errors = [],
+    errorCode = "INTERNAL_SERVER_ERROR"
   }: {
     statusCode?: number;
     message?: string;
     errors?: any[];
+    errorCode?: string,
   }
 ) => {
   return res.status(statusCode).json({
@@ -40,6 +42,7 @@ export const errorResponse = (
     success: false,
     message,
     errors,
+    errorCode
   });
 };
 

@@ -2,10 +2,9 @@ import { NextFunction, Request, Response } from "express";
 import { asyncHandler } from "../utils/async-handler";
 import { errorResponse } from "../utils/api";
 import { z } from "zod";
-import { GenerativeModel } from "@google/generative-ai";
 import Course from "../models/course";
-import mongoose from "mongoose";
 import { AIModel } from "../types/ai";
+import { ERROR } from "../utils/error";
 
 export const indexValidation = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -37,6 +36,7 @@ export const indexValidation = asyncHandler(
       return errorResponse(res, {
         statusCode: 400,
         message: "Validation Error",
+        errorCode: ERROR.PAGINATION_ERROR,
         errors,
       });
     }
@@ -65,6 +65,7 @@ export const createValidation = asyncHandler(
       return errorResponse(res, {
         statusCode: 400,
         message: "Validation Error",
+        errorCode: ERROR.COURSE_PROMPT,
         errors,
       });
     }
@@ -81,6 +82,7 @@ export const courseIdValidation = asyncHandler(
       return errorResponse(res, {
         statusCode: 400,
         message: "Validation Error",
+        errorCode: ERROR.COURSE_ID,
         errors: [{ field: "courseId", message: "Course ID is required" }],
       });
     }
@@ -101,6 +103,7 @@ export const courseIdValidation = asyncHandler(
       return errorResponse(res, {
         statusCode: 400,
         message: "Validation Error",
+        errorCode: ERROR.COURSE_ID,
         errors,
       });
     }
@@ -115,6 +118,7 @@ export const courseIdValidation = asyncHandler(
       return errorResponse(res, {
         statusCode: 404,
         message: "Course not found",
+        errorCode: ERROR.COURSE_NOT_FOUND,
       });
     }
 

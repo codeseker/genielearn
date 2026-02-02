@@ -1,7 +1,7 @@
 const appMode = import.meta.env.VITE_APP_MODE;
 
 const baseImageUrl =
-  appMode === "local"
+  appMode === "development"
     ? import.meta.env.VITE_BACKEND_URL_LOCAL
     : import.meta.env.VITE_BACKEND_URL_PROD;
 

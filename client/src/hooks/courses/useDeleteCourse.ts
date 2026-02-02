@@ -1,4 +1,5 @@
 import { deleteCourse } from "@/actions/course";
+import { SUCCESS } from "@/api/messages/success";
 import { useAsyncHandler } from "@/utils/async-handler";
 import { successToast } from "@/utils/toaster";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -17,7 +18,7 @@ export default function useDeleteCourse() {
       return safeCouseDelete({ courseId });
     },
     onSuccess: () => {
-      successToast("Course deleted successfully");
+      successToast(SUCCESS.COURSE_DELETE_SUCCESS);
       queryClient.invalidateQueries({ queryKey: ["courses-with-stats"] });
       queryClient.invalidateQueries({ queryKey: ["courses"] });
     },

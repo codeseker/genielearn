@@ -1,4 +1,5 @@
 import { createCourse } from "@/actions/course";
+import { SUCCESS } from "@/api/messages/success";
 import { useAsyncHandler } from "@/utils/async-handler";
 import { successToast } from "@/utils/toaster";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -15,7 +16,7 @@ export default function useCreateCourse() {
       return safeCreateCourse({ prompt });
     },
     onSuccess: () => {
-      successToast("Course created successfully");
+      successToast(SUCCESS.COURSE_CREATE_SUCCESS);
       queryClient.invalidateQueries({ queryKey: ["courses-with-stats"] });
       queryClient.invalidateQueries({ queryKey: ["courses"] });
     },

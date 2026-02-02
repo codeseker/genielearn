@@ -32,6 +32,8 @@ export default function Profile() {
       : "",
   };
 
+  console.log("USER: ", user);
+
   const { coursesWithStatsData, isLoading, error } = useFetchCoursesWithStats();
   const { mutateAsync: deleteCourse, isPending: deleteCoursePending } =
     useDeleteCourse();

@@ -2,10 +2,11 @@ import { login } from "@/actions/user";
 import { setUser } from "@/store/slices/user";
 import { successToast } from "@/utils/toaster";
 import { useAsyncHandler } from "@/utils/async-handler";
-import { useState, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
 import type { LoginSchema } from "@/components/login-form";
+import { SUCCESS } from "@/api/messages/success";
 
 export function useLogin() {
   const dispatch = useDispatch();
@@ -14,25 +15,19 @@ export function useLogin() {
   const asyncHandler = useAsyncHandler();
   const safeLogin = asyncHandler(login);
 
-  const [loading, setLoading] = useState(false);
-
-  const handleLogin = useCallback(
-    async (data: LoginSchema) => {
-      setLoading(true);
-      const result = await safeLogin(data);
-      setLoading(false);
-
+  const mutation = useMutation({
+    mutationFn: (data: LoginSchema) => safeLogin(data),
+    onSuccess: (result) => {
       if (!result) return;
 
       dispatch(setUser(result.data));
-      successToast("Login successful");
+      successToast(SUCCESS.LOGIN_SUCCESS);
       navigate("/", { replace: true });
     },
-    [dispatch, navigate, safeLogin],
-  );
+  });
 
   return {
-    loading,
-    handleLogin,
+    loading: mutation.isPending,
+    handleLogin: mutation.mutateAsync,
   };
 }

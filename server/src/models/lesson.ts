@@ -1,5 +1,4 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
-import { generateUniqueSlug } from "../utils/helper-function";
 
 export interface ILesson extends Document {
   title: string;
@@ -32,17 +31,6 @@ const lessonSchema: Schema<ILesson> = new Schema<ILesson>(
   },
 );
 
-lessonSchema.pre<ILesson>("validate", async function (next) {
-  if (!this.isModified("title")) return;
-
-  const Model = this.constructor as Model<ILesson>;
-
-  this.slug = await generateUniqueSlug({
-    model: Model,
-    title: this.title,
-    id: this._id.toString(),
-  });
-});
 
 const lesson: Model<ILesson> = mongoose.model<ILesson>("Lesson", lessonSchema);
 

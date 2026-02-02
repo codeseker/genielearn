@@ -9,6 +9,7 @@ import course from "../models/course";
 import axios from "axios";
 import { ENDPOINTS } from "../constants/endpoints";
 import { getPrompt } from "../config/get-prompt";
+import { ERROR } from "../utils/error";
 
 export const create = asyncHandler(async (req: Request, res: Response) => {
   const { courseId, moduleId, lessonId } = req.body;
@@ -23,6 +24,7 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
     return errorResponse(res, {
       statusCode: 404,
       message: "Course not found",
+      errorCode: ERROR.COURSE_NOT_FOUND
     });
   }
 
@@ -42,6 +44,7 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
     return errorResponse(res, {
       statusCode: 404,
       message: "Module not found",
+      errorCode: ERROR.MODULE_NOT_FOUND
     });
   }
 
@@ -55,10 +58,9 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
     return errorResponse(res, {
       statusCode: 404,
       message: "Lesson not found",
+      errorCode: ERROR.LESSON_NOT_FOUND
     });
   }
-
-  /* ---------------- EXISTING CONTENT CHECK ---------------- */
 
   const content = lessonData.content;
   let isEmpty = false;
@@ -167,8 +169,6 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
     });
   }
 
-  /* ---------------- ADD: NEXT MODULE FALLBACK ---------------- */
-
   if (!nextLessonInSameModule) {
     const nextModule = await moduleModel
       .findOne({
@@ -191,8 +191,6 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
       nextLessonSlug = (nextModule as any).lessons[0].slug;
     }
   }
-
-  /* ---------------------------------------------------------- */
 
   const upcomingLessons = lessons.filter(
     (l: any) => l.slug !== lessonId && l.order > lessonData.order,
@@ -223,6 +221,7 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
     return errorResponse(res, {
       statusCode: 500,
       message: "AI returned invalid JSON",
+      errorCode: ERROR.LESSON_VIOLATION,
     });
   }
 
@@ -291,6 +290,7 @@ export const updateLesson = asyncHandler(
       return errorResponse(res, {
         statusCode: 404,
         message: "Course not found",
+        errorCode: ERROR.COURSE_NOT_FOUND
       });
     }
 
@@ -304,6 +304,7 @@ export const updateLesson = asyncHandler(
       return errorResponse(res, {
         statusCode: 404,
         message: "Module not found",
+        errorCode: ERROR.MODULE_NOT_FOUND
       });
     }
 
@@ -317,6 +318,7 @@ export const updateLesson = asyncHandler(
       return errorResponse(res, {
         statusCode: 404,
         message: "Lesson not found",
+        errorCode: ERROR.LESSON_NOT_FOUND
       });
     }
 

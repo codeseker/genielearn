@@ -5,6 +5,7 @@ import { errorResponse } from "../utils/api";
 import User from "../models/user";
 import { comparePassword } from "../utils/bcrypt";
 import { UserStatus } from "../constants/enums/user";
+import { ERROR } from "../utils/error";
 
 const registerSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
@@ -52,6 +53,7 @@ export const registerValidation = asyncHandler(
       return errorResponse(res, {
         statusCode: 400,
         message: "Validation Error",
+        errorCode: ERROR.REGISTER_VALIDATION,
         errors,
       });
     }
@@ -63,6 +65,7 @@ export const registerValidation = asyncHandler(
         statusCode: 400,
         message: "User with this email already exists",
         errors: [{ field: "email", message: "Email already in use" }],
+        errorCode: ERROR.USER_EMAIL_EXISTS
       });
     }
 
@@ -83,6 +86,7 @@ export const loginValidation = asyncHandler(
       return errorResponse(res, {
         statusCode: 400,
         message: "Validation Error",
+        errorCode: ERROR.LOGIN_VALIDATION,
         errors,
       });
     }
@@ -95,14 +99,16 @@ export const loginValidation = asyncHandler(
         statusCode: 404,
         message: "User not found",
         errors: [{ field: "email", message: "User not found" }],
+        errorCode: ERROR.USER_NOT_FOUND
       });
     }
 
     if(user.isDeleted || user.status === UserStatus.INACTIVE) {
       return errorResponse(res, {
-        statusCode: 403,
+        statusCode: 401,
         message: "User account is inactive or deleted",
         errors: [{ field: "email", message: "Account inactive or deleted" }],
+        errorCode: ERROR.USER_ACCOUNT_INACTIVE
       });
     }
 
@@ -113,6 +119,7 @@ export const loginValidation = asyncHandler(
         statusCode: 401,
         message: "Invalid credentials",
         errors: [{ field: "password", message: "Incorrect password" }],
+        errorCode: ERROR.USER_PASSWORD_NOT_MATCH
       });
     }
 

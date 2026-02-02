@@ -18,6 +18,6 @@ router.route("/all").get(indexValidation, index);
 router.route("/create").post(createValidation, create);
 router.route("/:courseId/view").get(courseIdValidation, show);
 router.route("/:courseId/delete").delete(courseIdValidation, remove);
-router.route("/stats").get(coursesWithStats);
+router.route("/stats").get(indexValidation, coursesWithStats);
 
 export default router;

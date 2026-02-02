@@ -18,7 +18,7 @@ const loginSchema = z.object({
 export type LoginSchema = z.infer<typeof loginSchema>;
 
 type LoginFormProps = {
-  onSubmit: (data: LoginSchema) => void | Promise<void>;
+  onSubmit: (data: LoginSchema) => any;
 };
 
 export function LoginForm({ onSubmit }: LoginFormProps) {

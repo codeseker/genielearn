@@ -5,6 +5,7 @@ import { Request, Response } from "express";
 import { getUniqueFileName, getUploadPath } from "../utils/helper-function";
 import { UploadedFile } from "express-fileupload";
 import Upload from "../models/uploads";
+import { ERROR } from "../utils/error";
 
 export const getProfile = asyncHandler(async (req: Request, res: Response) => {
   const id = (req as any).user.id;
@@ -21,6 +22,7 @@ export const getProfile = asyncHandler(async (req: Request, res: Response) => {
       statusCode: 404,
       message: "User not found",
       errors: [{ field: "id", message: "User not found" }],
+      errorCode: ERROR.USER_NOT_FOUND
     });
   }
 
@@ -48,6 +50,7 @@ export const uploadAvatar = asyncHandler(
         statusCode: 404,
         message: "User not found",
         errors: [{ field: "id", message: "User not found" }],
+        errorCode: ERROR.USER_NOT_FOUND
       });
     }
 
@@ -56,6 +59,7 @@ export const uploadAvatar = asyncHandler(
         statusCode: 400,
         message: "Avatar is required",
         errors: [{ field: "avatar", message: "Avatar is required" }],
+        errorCode: ERROR.AVATAR_REQUIRED
       });
     }
 
@@ -66,6 +70,7 @@ export const uploadAvatar = asyncHandler(
         statusCode: 400,
         message: "Only image files are allowed",
         errors: [{ field: "avatar", message: "Invalid file type" }],
+        errorCode: ERROR.ONLY_IMAGES_ALLOWED,
       });
     }
 

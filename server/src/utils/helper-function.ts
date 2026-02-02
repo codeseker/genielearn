@@ -85,30 +85,35 @@ export async function generateUniqueSlug<T extends SlugDocument>({
   title: string;
   id?: string;
 }): Promise<string> {
-  const baseSlug = slugify(title, { lower: true, strict: true });
-  let slug = baseSlug;
-  let counter = 1;
+  try {
+    const baseSlug = slugify(title, { lower: true, strict: true });
+    let slug = baseSlug;
+    let counter = 1;
 
-  const query: QueryFilter<T> = {
-    slug: new RegExp(`^${baseSlug}(-\\d+)?$`, "i"),
-  };
+    const query: QueryFilter<T> = {
+      slug: new RegExp(`^${baseSlug}(-\\d+)?$`, "i"),
+    };
 
-  if (id) {
-    query._id = { $ne: new Types.ObjectId(id) };
+    if (id) {
+      query._id = { $ne: new Types.ObjectId(id) };
+    }
+
+    const existingSlugs = await model
+      .find(query)
+      .select("slug")
+      .lean<{ slug: string }[]>();
+
+    const existingSet = new Set(existingSlugs.map((doc) => doc.slug));
+
+    while (existingSet.has(slug)) {
+      slug = `${baseSlug}-${counter++}`;
+    }
+
+    return slug;
+  } catch (error: any) {
+    console.log("Error: ", error);
+    return "";
   }
-
-  const existingSlugs = await model
-    .find(query)
-    .select("slug")
-    .lean<{ slug: string }[]>();
-
-  const existingSet = new Set(existingSlugs.map((doc) => doc.slug));
-
-  while (existingSet.has(slug)) {
-    slug = `${baseSlug}-${counter++}`;
-  }
-
-  return slug;
 }
 
 export const getUploadPath = () => {

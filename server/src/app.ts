@@ -52,7 +52,6 @@ app.use("/api/v1", (req, res, next) => {
 
   next();
 });
-
 app.use("/api/v1", router);
 
 // Error Handling Middleware

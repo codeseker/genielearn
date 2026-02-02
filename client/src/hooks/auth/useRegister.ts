@@ -6,6 +6,7 @@ import { useState, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import type { RegisterSchema } from "@/components/signup-form";
+import { SUCCESS } from "@/api/messages/success";
 
 export function useRegister() {
   const dispatch = useDispatch();
@@ -25,7 +26,7 @@ export function useRegister() {
       if (!result) return;
 
       dispatch(setUser(result.data));
-      successToast("Register successful");
+      successToast(SUCCESS.REGISTER_SUCCESS);
       navigate("/", { replace: true });
     },
     [dispatch, navigate, safeRegister],

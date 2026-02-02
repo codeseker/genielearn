@@ -10,9 +10,12 @@ import {
   classifyIntent,
   cleanJSON,
   generateMetadata,
+  generateUniqueSlug,
 } from "../utils/helper-function";
 import { getPrompt } from "../config/get-prompt";
 import { validateUserQuery } from "../validations/course";
+import mongoose, { Types } from "mongoose";
+import { ERROR } from "../utils/error";
 
 export const index = asyncHandler(async (req: Request, res: Response) => {
   const {
@@ -76,95 +79,135 @@ export const index = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const create = asyncHandler(async (req: Request, res: Response) => {
-  const { prompt: userQuery } = req.body;
+  const session = await mongoose.startSession();
 
-  const securityChecks = getPrompt(model, "security");
+  try {
+    session.startTransaction();
 
-  // Validate user query against security checks
-  const checks = await validateUserQuery(model, securityChecks, userQuery);
+    const { prompt: userQuery } = req.body;
 
-  if (!checks.isValid) {
-    return errorResponse(res, {
-      message: "Invalid user query from AI model",
-      errors: checks.reasons,
-    });
-  }
+    const securityChecks = getPrompt(model, "security");
+    const checks = await validateUserQuery(model, securityChecks, userQuery);
 
-  const intent = await classifyIntent(model, userQuery);
-  const metadata = await generateMetadata(model, intent);
+    if (!checks.isValid) {
+      await session.abortTransaction();
+      return errorResponse(res, {
+        message: "Invalid user query from AI model",
+        errors: checks.reasons,
+        errorCode: ERROR.COURSE_VIOLATION,
+      });
+    }
 
-  const courseData = await courseModel.create({
-    title: metadata.title,
-    description: metadata.description,
-    targetAudience: metadata.targetAudience,
-    estimatedDuration: metadata.estimatedDuration,
-    tags: metadata.tags,
-    createdBy: (req as any).user.id,
-    intentCategory: intent.intentCategory,
-    prerequisites: metadata.prerequisites,
-  });
-  let prompt = getPrompt(model, "course", {
-    ...metadata,
-    userQuery,
-  });
-  const response = await model.generateContent({
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
-  });
+    const intent = await classifyIntent(model, userQuery);
+    const metadata = await generateMetadata(model, intent);
 
-  const raw = response.response.text();
-  const json: Course = JSON.parse(cleanJSON(raw));
-
-  const moduleInsertData = json.modules.map((mod, idx) => ({
-    title: mod.title,
-    description: mod.description,
-    course: courseData._id,
-    order: idx + 1,
-  }));
-
-  const insertedModules = await moduleModel.insertMany(moduleInsertData);
-
-  const moduleMap = new Map<string, string>();
-  insertedModules.forEach((m) => {
-    moduleMap.set(m.title, m._id.toString());
-  });
-
-  const lessonsInsertData = json.modules.flatMap((mod) =>
-    mod.lessons.map((les) => ({
-      title: les.title,
-      module: moduleMap.get(mod.title),
-      order: les.order,
-      description: les.description,
-      estimatedMinutes: les.estimatedMinutes,
-    })),
-  );
-
-  await lessonModel.insertMany(lessonsInsertData);
-
-  return successResponse(res, {
-    message: "Course metadata generated successfully",
-    data: {
+    const courseSlug = await generateUniqueSlug({
+      model: courseModel,
       title: metadata.title,
-      description: metadata.description,
-      courseId: courseData._id,
-      slug: courseData.slug,
-      modules: [
+    });
+
+    const [courseData] = await courseModel.create(
+      [
         {
-          title: json.modules[0].title,
-          description: json.modules[0].description,
-          slug: json.modules[0].slug,
-          lessons: [
-            {
-              title: json.modules[0].lessons[0].title,
-              description: json.modules[0].lessons[0].description,
-              estimatedMinutes: json.modules[0].lessons[0].estimatedMinutes,
-              slug: json.modules[0].lessons[0].slug,
-            },
-          ],
+          title: metadata.title,
+          slug: courseSlug,
+          description: metadata.description,
+          targetAudience: metadata.targetAudience,
+          estimatedDuration: metadata.estimatedDuration,
+          tags: metadata.tags,
+          createdBy: (req as any).user.id,
+          intentCategory: intent.intentCategory,
+          prerequisites: metadata.prerequisites,
         },
       ],
-    },
-    flag: true,
-  });
+      { session },
+    );
+
+    const prompt = getPrompt(model, "course", {
+      ...metadata,
+      userQuery,
+    });
+
+    const response = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+    });
+
+    const raw = response.response.text();
+    const json: Course = JSON.parse(raw);
+
+    const moduleInsertData = [];
+
+    for (let i = 0; i < json.modules.length; i++) {
+      const mod = json.modules[i];
+
+      const slug = await generateUniqueSlug({
+        model: moduleModel,
+        title: mod.title,
+      });
+
+      moduleInsertData.push({
+        title: mod.title,
+        slug,
+        description: mod.description,
+        course: courseData._id,
+        order: i + 1,
+      });
+    }
+
+    const insertedModules = await moduleModel.insertMany(moduleInsertData, {
+      session,
+    });
+
+    const moduleMap = new Map<string, Types.ObjectId>();
+    insertedModules.forEach((m) => {
+      moduleMap.set(m.title, m._id);
+    });
+
+    const lessonsInsertData = [];
+
+    for (const mod of json.modules) {
+      const moduleId = moduleMap.get(mod.title);
+      if (!moduleId) {
+        throw new Error(`Module not found for lessons: ${mod.title}`);
+      }
+
+      for (const les of mod.lessons) {
+        const slug = await generateUniqueSlug({
+          model: lessonModel,
+          title: les.title,
+        });
+
+        lessonsInsertData.push({
+          title: les.title,
+          slug,
+          module: moduleId,
+          order: les.order,
+          description: les.description,
+          estimatedMinutes: les.estimatedMinutes,
+        });
+      }
+    }
+
+    await lessonModel.insertMany(lessonsInsertData, { session });
+    
+    await session.commitTransaction();
+
+    return successResponse(res, {
+      message: "Course metadata generated successfully",
+      data: {
+        title: courseData.title,
+        description: courseData.description,
+        courseId: courseData._id,
+        slug: courseData.slug,
+      },
+      flag: true,
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
+  }
 });
 
 export const show = asyncHandler(async (req: Request, res: Response) => {
@@ -210,6 +253,7 @@ export const remove = asyncHandler(async (req: Request, res: Response) => {
     return errorResponse(res, {
       statusCode: 404,
       message: "Course not found",
+      errorCode: ERROR.COURSE_NOT_FOUND
     });
   }
 

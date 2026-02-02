@@ -1,4 +1,6 @@
 import { uploadAvatar } from "@/actions/user";
+import { ERROR_MESSAGES } from "@/api/messages/error";
+import { SUCCESS } from "@/api/messages/success";
 import { setAvatar } from "@/store/slices/user";
 import { useAsyncHandler } from "@/utils/async-handler";
 import { errorToast, successToast } from "@/utils/toaster";
@@ -16,7 +18,7 @@ export default function useAvatarUpload() {
     onSuccess: (res) => {
       if (!res) return;
       dispatch(setAvatar(res.data));
-      successToast("Avatar uploaded successfully");
+      successToast(SUCCESS.AVATAR_UPLOAD_SUCCESS);
     },
   });
 
@@ -27,7 +29,7 @@ export default function useAvatarUpload() {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      errorToast("Please upload a valid image file");
+      errorToast(ERROR_MESSAGES["ONLY_IMAGES_ALLOWED"]);
       event.target.value = "";
       return;
     }

@@ -1,4 +1,5 @@
 import { googleAuth } from "@/actions/user";
+import { SUCCESS } from "@/api/messages/success";
 import { setUser } from "@/store/slices/user";
 import { useAsyncHandler } from "@/utils/async-handler";
 import { successToast } from "@/utils/toaster";
@@ -21,7 +22,7 @@ export default function useGoogleAuth() {
       if (!result) return;
 
       dispatch(setUser(result.data));
-      successToast("Login successful");
+      successToast(SUCCESS.LOGIN_SUCCESS);
       navigate("/", { replace: true });
     },
   });

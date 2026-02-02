@@ -4,6 +4,7 @@ import { asyncHandler } from "../utils/async-handler";
 import { verifyToken } from "../utils/jwt";
 import User from "../models/user";
 import { JwtPayload } from "jsonwebtoken";
+import { ERROR } from "../utils/error";
 
 export const authMiddleware = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -13,6 +14,7 @@ export const authMiddleware = asyncHandler(
       return errorResponse(res, {
         statusCode: 401,
         message: "Unauthorized: No token provided",
+        errorCode: ERROR.TOKEN_NOT_FOUND
       });
     }
 
@@ -23,6 +25,7 @@ export const authMiddleware = asyncHandler(
       return errorResponse(res, {
         statusCode: 401,
         message: "Unauthorized: Invalid token payload",
+        errorCode: ERROR.TOKEN_INVALID
       });
     }
 
@@ -31,6 +34,7 @@ export const authMiddleware = asyncHandler(
       return errorResponse(res, {
         statusCode: 404,
         message: "User not found",
+        errorCode: ERROR.USER_NOT_FOUND
       });
     }
 
