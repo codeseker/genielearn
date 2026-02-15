@@ -1,10 +1,12 @@
-# GenieLearn Server
+# GenieLearn
 
 ## Description
 
 GenieLearn is a full-stack web application that transforms natural language prompts into structured, multi-module learning courses. Users describe what they want to learn, and the system leverages large language models to produce a complete course outline with modules, lessons, estimated durations, and supplementary YouTube videos.
 
 The application is built for self-learners, educators, and content creators who need to rapidly scaffold educational content without manually designing curricula. It handles everything from prompt validation and security screening to progress tracking and course completion.
+
+## Demo Video
 
 ## Key Features
 
