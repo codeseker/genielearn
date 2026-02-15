@@ -7,6 +7,7 @@ GenieLearn is a full-stack web application that transforms natural language prom
 The application is built for self-learners, educators, and content creators who need to rapidly scaffold educational content without manually designing curricula. It handles everything from prompt validation and security screening to progress tracking and course completion.
 
 ## Demo Video
+[Watch Demo](https://drive.google.com/file/d/1kJSbN5EA2o-39PjZav6q87FnrL0kd6na/view?usp=drivesdk)
 
 ## Key Features
 
