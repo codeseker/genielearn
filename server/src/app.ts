@@ -38,6 +38,13 @@ app.use(
 app.use(express.json());
 
 // Routes
+app.use("/api/health", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "API is healthy",
+  });
+});
+
 app.use("/api/v1", (req, res, next) => {
   const start = Date.now();
 
