@@ -75,7 +75,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
       statusCode: 404,
       message: "User not found",
       errors: [{ field: "email", message: "User not found" }],
-      errorCode: ERROR.USER_NOT_FOUND
+      errorCode: ERROR.USER_NOT_FOUND,
     });
   }
 
@@ -135,7 +135,7 @@ export const refreshToken = asyncHandler(
       return errorResponse(res, {
         statusCode: 401,
         message: "Refresh token is missing",
-        errorCode: ERROR.REFRESH_TOKEN_NOT_FOUND
+        errorCode: ERROR.REFRESH_TOKEN_NOT_FOUND,
       });
     }
 
@@ -144,7 +144,7 @@ export const refreshToken = asyncHandler(
       return errorResponse(res, {
         statusCode: 401,
         message: "Invalid refresh token",
-        errorCode: ERROR.REFRESH_TOKEN_INVALID
+        errorCode: ERROR.REFRESH_TOKEN_INVALID,
       });
     }
 
@@ -152,7 +152,7 @@ export const refreshToken = asyncHandler(
       return errorResponse(res, {
         statusCode: 401,
         message: "Unauthorized: Invalid token payload",
-        errorCode: ERROR.TOKEN_INVALID
+        errorCode: ERROR.TOKEN_INVALID,
       });
     }
 
@@ -161,7 +161,7 @@ export const refreshToken = asyncHandler(
       return errorResponse(res, {
         statusCode: 401,
         message: "Refresh token not found or expired",
-        errorCode: ERROR.REFRESH_TOKEN_NOT_FOUND
+        errorCode: ERROR.REFRESH_TOKEN_NOT_FOUND,
       });
     }
 
@@ -224,7 +224,7 @@ export const socialLoginGoogle = asyncHandler(
         statusCode: 400,
         message: "Authorization code missing",
         errors: [{ field: "code", message: "Authorization code missing" }],
-        errorCode: ERROR.AUTHORIZATION_CODE_MISSING
+        errorCode: ERROR.AUTHORIZATION_CODE_MISSING,
       });
     }
 
@@ -259,7 +259,10 @@ export const socialLoginGoogle = asyncHandler(
     } = userInfoRes.data as any;
 
     let user = await User.findOne({
-      $or: [{ authProvider: "google", authProviderId: googleId }, { email }],
+      $or: [
+        { authProvider: AuthProviders.GOOGLE, authProviderId: googleId },
+        { email },
+      ],
     });
 
     if (!user) {
@@ -269,7 +272,7 @@ export const socialLoginGoogle = asyncHandler(
         last_name: family_name,
         email,
         status: UserStatus.ACTIVE,
-        authProvider: "google",
+        authProvider: AuthProviders.GOOGLE,
         authProviderId: googleId,
       });
     } else if (!user.authProviderId) {
@@ -310,7 +313,7 @@ export const socialLoginGoogle = asyncHandler(
             statusCode: 500,
             message: "Something went wrong",
             errors: [{ field: "avatar", message: "Something went wrong" }],
-            errorCode: ERROR.INTERNAL_SERVER_ERROR
+            errorCode: ERROR.INTERNAL_SERVER_ERROR,
           });
         }
 
@@ -331,7 +334,7 @@ export const socialLoginGoogle = asyncHandler(
             statusCode: 500,
             message: "Something went wrong",
             errors: [{ field: "avatar", message: "Something went wrong" }],
-            errorCode: ERROR.INTERNAL_SERVER_ERROR
+            errorCode: ERROR.INTERNAL_SERVER_ERROR,
           });
         }
 

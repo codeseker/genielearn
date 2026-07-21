@@ -12,8 +12,7 @@ import useUpdateLesson from "@/hooks/lessons/useUpdateLesson";
 import { useEffect, useState } from "react";
 import LessonCompleteCelebration from "@/components/lesson-celebration";
 import { useNavigate } from "react-router-dom";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+import { generatePdf, downloadBlob } from "@/actions/pdf";
 import { LessonStickyFooter } from "@/components/lesson-footer";
 import { errorToast } from "@/utils/toaster";
 
@@ -120,76 +119,75 @@ export function LessonContent({
   }
 
   const handleGeneratePDF = async () => {
-    const original = document.getElementById("lesson-pdf-content");
-    if (!original) return;
-
-    const isDarkMode = document.documentElement.classList.contains("dark");
-    const bgColor = isDarkMode ? "#0b1220" : "#f8fafc";
-    const textColor = isDarkMode ? "#e2e8f0" : "#0f172a";
-    const borderColor = isDarkMode
-      ? "rgba(226,232,240,0.18)"
-      : "rgba(15,23,42,0.15)";
+    if (!lessonData || !Array.isArray(lessonData.content)) {
+      errorToast("No lesson content available to export.");
+      return;
+    }
 
     setIsGeneratingPdf(true);
 
-    await new Promise((r) => setTimeout(r, 50));
-
-    const clone = original.cloneNode(true) as HTMLElement;
-
-    clone.querySelectorAll("*").forEach((el) => {
-      const element = el as HTMLElement;
-      element.style.color = textColor;
-      element.style.backgroundColor = "transparent";
-      element.style.borderColor = borderColor;
-      element.style.boxShadow = "none";
-    });
-
-    clone.style.backgroundColor = bgColor;
-    clone.style.padding = "24px";
-    clone.style.width = "794px";
-
-    clone.style.position = "fixed";
-    clone.style.left = "-9999px";
-    clone.style.top = "0";
-
-    document.body.appendChild(clone);
-
     try {
-      const canvas = await html2canvas(clone, {
-        scale: 1.5,
-        useCORS: true,
-        backgroundColor: bgColor,
-        logging: false,
+      const pdfSections: any[] = [];
+
+      lessonData.content.forEach((block) => {
+        if (block.type === "heading") {
+          pdfSections.push({
+            type: "heading",
+            text: block.text,
+            level: 2,
+          });
+        } else if (block.type === "paragraph") {
+          pdfSections.push({
+            type: "paragraph",
+            text: block.text,
+          });
+        } else if (block.type === "code") {
+          pdfSections.push({
+            type: "code",
+            language: block.language || "",
+            code: block.text || "",
+          });
+        } else if (block.type === "mcq") {
+          pdfSections.push({
+            type: "heading",
+            text: `Quiz Question: ${block.question}`,
+            level: 3,
+          });
+
+          block.options.forEach((opt: string, idx: number) => {
+            const optionLetter = String.fromCharCode(65 + idx);
+            pdfSections.push({
+              type: "paragraph",
+              text: `${optionLetter}) ${opt}`,
+            });
+          });
+
+          const correctLetter = String.fromCharCode(65 + block.answer);
+          pdfSections.push({
+            type: "paragraph",
+            text: `Correct Answer: ${correctLetter} (${block.options[block.answer]})`,
+          });
+
+          if (block.explanation) {
+            pdfSections.push({
+              type: "paragraph",
+              text: `Explanation: ${block.explanation}`,
+            });
+          }
+        }
       });
 
-      const imgData = canvas.toDataURL("image/jpeg", 0.9);
+      const filename = `${lesson.title.replace(/\s+/g, "_")}.pdf`;
+      const blob = await generatePdf({
+        title: lesson.title,
+        sections: pdfSections,
+      });
 
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-
-      const imgWidth = pageWidth;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      let position = 0;
-      let heightLeft = imgHeight;
-
-      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-
-      pdf.save(`${lesson.title}.pdf`);
+      downloadBlob(blob, filename);
     } catch (error: any) {
       errorToast("Failed to generate PDF.");
       console.error(error);
     } finally {
-      document.body.removeChild(clone);
       setIsGeneratingPdf(false);
     }
   };

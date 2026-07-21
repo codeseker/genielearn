@@ -79,10 +79,10 @@ export const index = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const create = asyncHandler(async (req: Request, res: Response) => {
-  const session = await mongoose.startSession();
+  // const session = await mongoose.startSession();
 
   try {
-    session.startTransaction();
+    // session.startTransaction();
 
     const { prompt: userQuery } = req.body;
 
@@ -90,7 +90,6 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
     const checks = await validateUserQuery(model, securityChecks, userQuery);
 
     if (!checks.isValid) {
-      await session.abortTransaction();
       return errorResponse(res, {
         message: "Invalid user query from AI model",
         errors: checks.reasons,
@@ -106,22 +105,19 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
       title: metadata.title,
     });
 
-    const [courseData] = await courseModel.create(
-      [
-        {
-          title: metadata.title,
-          slug: courseSlug,
-          description: metadata.description,
-          targetAudience: metadata.targetAudience,
-          estimatedDuration: metadata.estimatedDuration,
-          tags: metadata.tags,
-          createdBy: (req as any).user.id,
-          intentCategory: intent.intentCategory,
-          prerequisites: metadata.prerequisites,
-        },
-      ],
-      { session },
-    );
+    const [courseData] = await courseModel.create([
+      {
+        title: metadata.title,
+        slug: courseSlug,
+        description: metadata.description,
+        targetAudience: metadata.targetAudience,
+        estimatedDuration: metadata.estimatedDuration,
+        tags: metadata.tags,
+        createdBy: (req as any).user.id,
+        intentCategory: intent.intentCategory,
+        prerequisites: metadata.prerequisites,
+      },
+    ]);
 
     const prompt = getPrompt(model, "course", {
       ...metadata,
@@ -154,9 +150,7 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
       });
     }
 
-    const insertedModules = await moduleModel.insertMany(moduleInsertData, {
-      session,
-    });
+    const insertedModules = await moduleModel.insertMany(moduleInsertData);
 
     const moduleMap = new Map<string, Types.ObjectId>();
     insertedModules.forEach((m) => {
@@ -188,9 +182,9 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
       }
     }
 
-    await lessonModel.insertMany(lessonsInsertData, { session });
-    
-    await session.commitTransaction();
+    await lessonModel.insertMany(lessonsInsertData);
+
+    // await session.commitTransaction();
 
     return successResponse(res, {
       message: "Course metadata generated successfully",
@@ -203,10 +197,10 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
       flag: true,
     });
   } catch (error) {
-    await session.abortTransaction();
+    // await session.abortTransaction();
     throw error;
   } finally {
-    session.endSession();
+    // session.endSession();
   }
 });
 
@@ -253,7 +247,7 @@ export const remove = asyncHandler(async (req: Request, res: Response) => {
     return errorResponse(res, {
       statusCode: 404,
       message: "Course not found",
-      errorCode: ERROR.COURSE_NOT_FOUND
+      errorCode: ERROR.COURSE_NOT_FOUND,
     });
   }
 

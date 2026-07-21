@@ -24,7 +24,7 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
     return errorResponse(res, {
       statusCode: 404,
       message: "Course not found",
-      errorCode: ERROR.COURSE_NOT_FOUND
+      errorCode: ERROR.COURSE_NOT_FOUND,
     });
   }
 
@@ -44,7 +44,7 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
     return errorResponse(res, {
       statusCode: 404,
       message: "Module not found",
-      errorCode: ERROR.MODULE_NOT_FOUND
+      errorCode: ERROR.MODULE_NOT_FOUND,
     });
   }
 
@@ -58,7 +58,7 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
     return errorResponse(res, {
       statusCode: 404,
       message: "Lesson not found",
-      errorCode: ERROR.LESSON_NOT_FOUND
+      errorCode: ERROR.LESSON_NOT_FOUND,
     });
   }
 
@@ -118,7 +118,7 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
       .populate({
         path: "lessons",
         match: { isDeleted: false },
-        options: { sort: { order: -1 }, limit: 1 }, 
+        options: { sort: { order: -1 }, limit: 1 },
         select: "slug",
       })
       .lean();
@@ -141,7 +141,7 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
       .populate({
         path: "lessons",
         match: { isDeleted: false },
-        options: { sort: { order: 1 }, limit: 1 }, 
+        options: { sort: { order: 1 }, limit: 1 },
         select: "slug",
       })
       .lean();
@@ -164,7 +164,7 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
           prevModuleSlug,
           previousLessonSlug,
         },
-        ytVideos: lessonData.ytVideos,
+        ytVideos: [],
       },
     });
   }
@@ -240,22 +240,22 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
     query = videoBlock.query;
   }
 
-  const videos: any = await axios.get(ENDPOINTS.YOUTUBE, {
-    params: {
-      key: process.env.YOUTUBE_API_KEY,
-      part: "snippet",
-      q: query,
-      type: "video",
-      maxResults: 5,
-      videoCategoryId: "27", // Education
-      relevanceLanguage: "en",
-      safeSearch: "strict",
-    },
-  });
+  // const videos: any = await axios.get(ENDPOINTS.YOUTUBE, {
+  //   params: {
+  //     key: process.env.YOUTUBE_API_KEY,
+  //     part: "snippet",
+  //     q: query,
+  //     type: "video",
+  //     maxResults: 5,
+  //     videoCategoryId: "27", // Education
+  //     relevanceLanguage: "en",
+  //     safeSearch: "strict",
+  //   },
+  // });
 
-  const allIds = videos.data.items.map((item: any) => item.id.videoId);
+  // const allIds = videos.data.items.map((item: any) => item.id.videoId);
 
-  lessonData.ytVideos = allIds;
+  lessonData.ytVideos = [];
   await lessonData.save();
 
   return successResponse(res, {
@@ -269,7 +269,7 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
         prevModuleSlug,
         previousLessonSlug,
       },
-      ytVideos: allIds,
+      ytVideos: [],
     },
   });
 });
@@ -290,7 +290,7 @@ export const updateLesson = asyncHandler(
       return errorResponse(res, {
         statusCode: 404,
         message: "Course not found",
-        errorCode: ERROR.COURSE_NOT_FOUND
+        errorCode: ERROR.COURSE_NOT_FOUND,
       });
     }
 
@@ -304,7 +304,7 @@ export const updateLesson = asyncHandler(
       return errorResponse(res, {
         statusCode: 404,
         message: "Module not found",
-        errorCode: ERROR.MODULE_NOT_FOUND
+        errorCode: ERROR.MODULE_NOT_FOUND,
       });
     }
 
@@ -318,7 +318,7 @@ export const updateLesson = asyncHandler(
       return errorResponse(res, {
         statusCode: 404,
         message: "Lesson not found",
-        errorCode: ERROR.LESSON_NOT_FOUND
+        errorCode: ERROR.LESSON_NOT_FOUND,
       });
     }
 
