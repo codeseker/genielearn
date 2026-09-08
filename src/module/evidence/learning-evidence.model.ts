@@ -121,6 +121,7 @@ export class LearningEvidence {
    */
   @Prop({
     required: false,
+    type: Number,
     default: null,
   })
   score: number | null;
@@ -131,6 +132,7 @@ export class LearningEvidence {
    */
   @Prop({
     required: false,
+    type: Number,
     default: null,
   })
   correctness: number | null;
@@ -141,6 +143,7 @@ export class LearningEvidence {
    */
   @Prop({
     required: false,
+    type: Number,
     default: null,
   })
   depthScore: number | null;
@@ -151,6 +154,7 @@ export class LearningEvidence {
    */
   @Prop({
     required: false,
+    type: Number,
     default: null,
   })
   clarityScore: number | null;
@@ -161,6 +165,7 @@ export class LearningEvidence {
    */
   @Prop({
     required: false,
+    type: Number,
     default: null,
   })
   confidence: number | null;
@@ -171,6 +176,7 @@ export class LearningEvidence {
    */
   @Prop({
     required: false,
+    type: Number,
     default: null,
   })
   timeSpentSeconds: number | null;

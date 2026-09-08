@@ -148,6 +148,7 @@ export class LLMUsage {
    */
   @Prop({
     required: false,
+    type: Number,
     default: null,
   })
   latencyMs: number | null;

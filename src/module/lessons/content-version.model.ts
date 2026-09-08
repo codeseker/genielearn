@@ -108,6 +108,7 @@ export class ContentVersion {
    */
   @Prop({
     required: false,
+    type: Number,
     default: null,
   })
   qualityScore: number | null;

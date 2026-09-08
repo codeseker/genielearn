@@ -192,6 +192,7 @@ export class GenerationJob {
    */
   @Prop({
     required: false,
+    type: Date,
     default: null,
   })
   startedAt: Date | null;
@@ -202,6 +203,7 @@ export class GenerationJob {
    */
   @Prop({
     required: false,
+    type: Date,
     default: null,
   })
   completedAt: Date | null;

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { createObserveModule } from '@nestjs/observe';
+import { ConfigModule } from './config/config.module.js';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { AuthModule } from './module/auth/auth.module.js';
@@ -21,11 +22,31 @@ import { LlmModule } from './module/llm/llm.module.js';
 import { PromptsModule } from './module/prompts/prompts.module.js';
 import { GamificationModule } from './module/gamification/gamification.module.js';
 import { UploadsModule } from './module/uploads/uploads.module.js';
+import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigService } from './config/config.service.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
 @Module({
   imports: [
+    ConfigModule,
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const mongoUri = {
+          dev: configService.mongoUriDev,
+          prod: configService.mongoUriProd,
+          test: configService.mongoUriTest,
+        }[configService.appMode];
+
+        if (!mongoUri) {
+          throw new Error(`MongoDB URI is not configured for ${configService.appMode} mode`);
+        }
+
+        return { uri: mongoUri };
+      },
+    }),
     // Distributed tracing, auto-correlated logs, request/job metrics, error
     // telemetry, alarms, and more — out of the box. Sign up at https://observe.nestjs.com
     ObserveModule.forRoot({

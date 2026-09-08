@@ -61,6 +61,7 @@ export class AssessmentAttempt {
    */
   @Prop({
     required: false,
+    type: Number,
     default: null,
   })
   score: number | null;
@@ -100,6 +101,7 @@ export class AssessmentAttempt {
    */
   @Prop({
     required: false,
+    type: Date,
     default: null,
   })
   startedAt: Date | null;
@@ -110,6 +112,7 @@ export class AssessmentAttempt {
    */
   @Prop({
     required: false,
+    type: Date,
     default: null,
   })
   submittedAt: Date | null;

@@ -53,6 +53,7 @@ export class Auth {
    */
   @Prop({
     required: false,
+    type: String,
     trim: true,
   })
   passwordHash?: string;
@@ -74,6 +75,7 @@ export class Auth {
    */
   @Prop({
     required: false,
+    type: String,
     trim: true,
   })
   authProviderId?: string;
@@ -117,6 +119,7 @@ export class Auth {
    */
   @Prop({
     required: false,
+    type: String
   })
   passwordResetToken?: string | null;
 
@@ -125,6 +128,7 @@ export class Auth {
    */
   @Prop({
     required: false,
+    type: Date,
   })
   passwordResetExpires?: Date | null;
 
@@ -133,6 +137,7 @@ export class Auth {
    */
   @Prop({
     required: false,
+    type: String,
   })
   refreshToken?: string | null;
 }

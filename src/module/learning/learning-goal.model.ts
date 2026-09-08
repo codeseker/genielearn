@@ -49,6 +49,7 @@ export class LearningGoal {
    */
   @Prop({
     required: false,
+    type: String,
     default: null,
     trim: true,
   })
@@ -71,6 +72,7 @@ export class LearningGoal {
    */
   @Prop({
     required: false,
+    type: Number,
     default: null,
   })
   targetDifficulty: number | null;

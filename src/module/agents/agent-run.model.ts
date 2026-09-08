@@ -101,6 +101,7 @@ export class AgentRun {
    */
   @Prop({
     required: false,
+    type: String,
     default: null,
     trim: true,
   })
@@ -185,6 +186,7 @@ export class AgentRun {
    */
   @Prop({
     required: false,
+    type: Date,
     default: null,
   })
   completedAt: Date | null;

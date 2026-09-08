@@ -53,6 +53,7 @@ export class Concept {
    */
   @Prop({
     required: false,
+    type: String,
     default: null,
     trim: true,
   })
@@ -64,6 +65,7 @@ export class Concept {
    */
   @Prop({
     required: false,
+    type: String,
     default: null,
     trim: true,
   })
@@ -75,6 +77,7 @@ export class Concept {
    */
   @Prop({
     required: false,
+    type: Number,
     default: null,
   })
   difficulty: number | null;

@@ -73,6 +73,7 @@ export class PromptVersion {
    */
   @Prop({
     required: false,
+    type: String,
     default: null,
     trim: true,
   })

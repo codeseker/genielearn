@@ -51,6 +51,7 @@ export class Lesson {
    */
   @Prop({
     required: false,
+    type: String,
     default: null,
     trim: true,
   })
@@ -93,6 +94,7 @@ export class Lesson {
    */
   @Prop({
     required: false,
+    type: Number,
     default: null,
   })
   difficulty: number | null;

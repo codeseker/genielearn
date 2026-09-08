@@ -133,6 +133,7 @@ export class AgentDecision {
    */
   @Prop({
     required: false,
+    type: Number,
     default: null,
   })
   targetDifficulty: number | null;

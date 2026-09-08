@@ -50,6 +50,7 @@ export class Course {
    */
   @Prop({
     required: false,
+    type: String,
     default: null,
     trim: true,
   })

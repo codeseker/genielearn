@@ -50,6 +50,7 @@ export class UserProfile {
    */
   @Prop({
     required: false,
+    type: String,
     trim: true,
   })
   firstName?: string;
@@ -59,6 +60,7 @@ export class UserProfile {
    */
   @Prop({
     required: false,
+    type: String,
     trim: true,
   })
   lastName?: string;
@@ -69,6 +71,7 @@ export class UserProfile {
    */
   @Prop({
     required: false,
+    type: String,
     default: null,
     trim: true,
   })
@@ -79,6 +82,7 @@ export class UserProfile {
    */
   @Prop({
     required: false,
+    type: String,
     default: null,
     trim: true,
   })
@@ -89,6 +93,7 @@ export class UserProfile {
    */
   @Prop({
     required: false,
+    type: String,
     default: null,
     trim: true,
   })

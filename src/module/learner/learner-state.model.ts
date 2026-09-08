@@ -128,6 +128,7 @@ export class LearnerState {
    */
   @Prop({
     required: false,
+    type: Number,
     default: null,
   })
   engagement: number | null;
@@ -151,6 +152,7 @@ export class LearnerState {
    */
   @Prop({
     required: false,
+    type: Number,
     default: null,
   })
   overallMastery: number | null;
