@@ -1,3 +1,5 @@
+import { ConfigService } from '../../config/config.service.js';
+
 export enum AuthStatus {
   ACTIVE = "ACTIVE",
   PENDING = "PENDING",
@@ -24,3 +26,20 @@ export enum UserRoles {
 export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
+
+
+export const jwtConstants = (configService: ConfigService) => {
+  const accessTokenSecret = configService.jwtSecret;
+  const refreshTokenSecret = configService.refreshSecret;
+
+  if (!accessTokenSecret || !refreshTokenSecret) {
+    throw new Error('JWT_SECRET and REFRESH_SECRET must be configured');
+  }
+
+  return {
+    access_token_secret: accessTokenSecret,
+    refresh_token_secret: refreshTokenSecret,
+    access_token_expiry: configService.jwtExpiresIn,
+    refresh_token_expiry: configService.refreshExpiresIn
+  };
+};

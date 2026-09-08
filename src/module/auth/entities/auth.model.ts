@@ -1,11 +1,11 @@
-import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { HydratedDocument } from "mongoose";
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 import {
   AuthProviders,
   AuthStatus,
   UserRoles,
   normalizeEmail,
-} from "./auth.constants.js";
+} from '../auth.constants.js';
 
 /**
  * AUTH collection — authentication state only.
@@ -27,7 +27,7 @@ import {
  */
 @Schema({
   timestamps: true,
-  collection: "auths",
+  collection: 'auths',
 })
 export class Auth {
   /** MongoDB primary key */
@@ -86,11 +86,10 @@ export class Auth {
    */
   @Prop({
     required: true,
-    type: [String],
-    enum: Object.values(UserRoles),
-    default: [UserRoles.USER],
+    type: Types.ObjectId,
+    ref: 'roles',
   })
-  roles: UserRoles[];
+  role: Types.ObjectId;
 
   /**
    * Account status.
@@ -119,7 +118,7 @@ export class Auth {
    */
   @Prop({
     required: false,
-    type: String
+    type: String,
   })
   passwordResetToken?: string | null;
 
