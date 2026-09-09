@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService as NestConfigService } from '@nestjs/config';
+import type { StringValue } from 'ms';
 import type { EnvConfig } from './env.validation.js';
 
 @Injectable()
@@ -34,8 +35,8 @@ export class ConfigService {
   }
 
   /** Returns the JWT lifetime in seconds. */
-  get jwtExpiresIn(): number | undefined {
-    return this.getOptional('JWT_EXPIRES_IN');
+  get jwtExpiresIn(): StringValue | undefined {
+    return this.getOptional('JWT_EXPIRES_IN') as StringValue | undefined;
   }
 
   /** Returns the refresh-token signing secret. */
@@ -44,8 +45,8 @@ export class ConfigService {
   }
 
   /** Returns the refresh-token lifetime in seconds. */
-  get refreshExpiresIn(): number | undefined {
-    return this.getOptional('REFRESH_EXPIRES_IN');
+  get refreshExpiresIn(): StringValue | undefined {
+    return this.getOptional('REFRESH_EXPIRES_IN') as StringValue | undefined;
   }
 
   /** Returns the Google OAuth client identifier. */

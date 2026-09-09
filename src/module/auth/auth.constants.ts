@@ -1,4 +1,5 @@
 import { ConfigService } from '../../config/config.service.js';
+import type { StringValue } from 'ms';
 
 export enum AuthStatus {
   ACTIVE = "ACTIVE",
@@ -39,7 +40,7 @@ export const jwtConstants = (configService: ConfigService) => {
   return {
     access_token_secret: accessTokenSecret,
     refresh_token_secret: refreshTokenSecret,
-    access_token_expiry: configService.jwtExpiresIn,
-    refresh_token_expiry: configService.refreshExpiresIn
+    access_token_expiry: configService.jwtExpiresIn as StringValue | undefined,
+    refresh_token_expiry: configService.refreshExpiresIn as StringValue | undefined,
   };
 };

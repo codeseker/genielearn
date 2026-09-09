@@ -1,4 +1,9 @@
-import { Module } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { createObserveModule } from '@nestjs/observe';
 import { ConfigModule } from './config/config.module.js';
 import { AppController } from './app.controller.js';
@@ -24,6 +29,8 @@ import { GamificationModule } from './module/gamification/gamification.module.js
 import { UploadsModule } from './module/uploads/uploads.module.js';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigService } from './config/config.service.js';
+import { AuthenticationMiddleware } from './module/auth/auth.middleware.js';
+import { LoggerMiddleware } from './common/middlewares/logger.middleware.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -41,7 +48,9 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
         }[configService.appMode];
 
         if (!mongoUri) {
-          throw new Error(`MongoDB URI is not configured for ${configService.appMode} mode`);
+          throw new Error(
+            `MongoDB URI is not configured for ${configService.appMode} mode`,
+          );
         }
 
         return { uri: mongoUri };
@@ -77,4 +86,17 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(LoggerMiddleware)
+      .forRoutes('*')
+      .apply(AuthenticationMiddleware)
+      .exclude(
+        { path: '/auth/login', method: RequestMethod.POST },
+        { path: '/auth/register', method: RequestMethod.POST },
+        { path: '/auth/refresh', method: RequestMethod.POST },
+      )
+      .forRoutes('*');
+  }
+}
