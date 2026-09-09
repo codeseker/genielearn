@@ -3,6 +3,7 @@ import { LearningGoalRepository } from '../repository/learning-goal.repository.j
 import { CreateGoalPayload, GOAL_STATUS } from '../dto/goal.dtos.js';
 import { Types } from 'mongoose';
 import { ApiError } from '../../../common/exceptions/api-error.exception.js';
+import { CourseService } from '../../courses/course.service.js';
 
 @Injectable()
 export class LearningGoalService {

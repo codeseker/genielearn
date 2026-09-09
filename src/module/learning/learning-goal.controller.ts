@@ -16,6 +16,8 @@ import {
   updateGoalStatusPayloadSchema,
 } from './dto/goal.dtos.js';
 import { LearningGoalService } from './service/learning-goal.service.js';
+import { type Request } from 'express';
+import { Types } from 'mongoose';
 
 @Controller('goals')
 export class LearningGoalController {
@@ -23,14 +25,15 @@ export class LearningGoalController {
 
   @Post()
   @UsePipes(new ZodValidationPipe(createGoalPayloadSchema))
-  async create(@Body() payload: CreateGoalPayload, @Req() req: any) {
-    const userId = req.user.id; // adjust based on your auth guard's request shape
-    return this.goalService.create(userId, payload);
+  async create(@Body() payload: CreateGoalPayload, @Req() req: Request) {
+    const userId = req.userId!;
+    const id = new Types.ObjectId(userId);
+    return this.goalService.create(id, payload);
   }
 
   @Get()
-  async index(@Req() req: any) {
-    const userId = req.user.id;
+  async index(@Req() req: Request) {
+    const userId = req.userId!;
     return this.goalService.findAllForUser(userId);
   }
 

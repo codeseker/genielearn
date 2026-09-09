@@ -1,12 +1,11 @@
-import { NestMiddleware } from '@nestjs/common';
+import { Injectable, NestMiddleware } from '@nestjs/common';
 import { AuthTokenService } from './auth-token.service.js';
 import { NextFunction, Request, Response } from 'express';
 import { ApiError } from '../../common/exceptions/api-error.exception.js';
 
+@Injectable()
 export class AuthenticationMiddleware implements NestMiddleware {
-  constructor(
-    private readonly tokenService: AuthTokenService,
-  ) {}
+  constructor(private readonly tokenService: AuthTokenService) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
     const authHeader = req.headers['authorization'];
@@ -25,6 +24,7 @@ export class AuthenticationMiddleware implements NestMiddleware {
 
       next();
     } catch (error) {
+      console.log('ERROR: ', error);
       if (error instanceof ApiError) {
         throw error;
       }
