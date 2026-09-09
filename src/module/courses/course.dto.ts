@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ApiProperty } from '@nestjs/swagger';
 
 export const COURSE_STATUS = [
   'ACTIVE',
@@ -21,3 +22,15 @@ export const updateCourseStatusPayloadSchema = z.object({
 export type UpdateCourseStatusPayload = z.infer<
   typeof updateCourseStatusPayloadSchema
 >;
+
+/**
+ * Swagger-annotated DTO for updating a course's status.
+ */
+export class UpdateCourseStatusBodyDto {
+  @ApiProperty({
+    description: 'New course status',
+    enum: COURSE_STATUS,
+    example: 'ACTIVE',
+  })
+  status: (typeof COURSE_STATUS)[number];
+}
