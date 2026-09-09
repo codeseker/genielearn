@@ -4,7 +4,7 @@ import type {
   UpdateQuery,
   PipelineStage,
   Types,
-} from "mongoose";
+} from 'mongoose';
 // import { QueryBuilder } from "./query.builder";
 
 export abstract class BaseRepository<T> {
@@ -12,6 +12,10 @@ export abstract class BaseRepository<T> {
 
   async create(payload: Partial<T>): Promise<T> {
     return (await this.model.create(payload)) as unknown as T;
+  }
+
+  async findMany(filter: QueryFilter<T>): Promise<T[]> {
+    return await this.model.find();
   }
 
   async findById(id: string | Types.ObjectId): Promise<T | null> {
@@ -27,7 +31,7 @@ export abstract class BaseRepository<T> {
     payload: UpdateQuery<T>,
   ): Promise<T | null> {
     return (await this.model
-      .findByIdAndUpdate(id, payload, { returnDocument: "after" })
+      .findByIdAndUpdate(id, payload, { returnDocument: 'after' })
       .exec()) as T | null;
   }
 
@@ -53,7 +57,7 @@ export abstract class BaseRepository<T> {
     return await this.model.aggregate(pipeline).exec();
   }
 
-//   query(): QueryBuilder<T> {
-//     return new QueryBuilder<T>(this.model as any);
-//   }
+  //   query(): QueryBuilder<T> {
+  //     return new QueryBuilder<T>(this.model as any);
+  //   }
 }
