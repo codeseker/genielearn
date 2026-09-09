@@ -1,4 +1,4 @@
-import { Body, Controller, Headers, Post, Req, UsePipes } from '@nestjs/common';
+import { Body, Controller, Post, Req, UsePipes } from '@nestjs/common';
 import { type RegisterDto, registerSchema } from './dtos/register.dto.js';
 import { ZodValidationPipe } from '../../config/ZodPipeline.js';
 import { AuthService } from './auth.service.js';
@@ -33,6 +33,7 @@ export class AuthController {
     };
   }
 
+  @Post('/logout')
   async logout(@Req() req: Request) {
     const userId = req.userId;
     await this.authService.logout(userId);

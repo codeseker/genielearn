@@ -16,6 +16,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './auth.constants.js';
 import { ConfigService } from '../../config/config.service.js';
 import { ConfigModule } from '../../config/config.module.js';
+import { AuthTokenService } from './auth-token.service.js';
+import { BcryptService } from '../../common/utils/bcrypt.js';
 
 @Module({
   imports: [
@@ -59,8 +61,8 @@ import { ConfigModule } from '../../config/config.module.js';
     }),
     UsersModule,
   ],
-  exports: [MongooseModule],
+  exports: [MongooseModule, AuthService, AuthTokenService],
   controllers: [AuthController],
-  providers: [AuthService, RoleRepository, AuthRepository],
+  providers: [AuthService, AuthTokenService, BcryptService, RoleRepository, AuthRepository],
 })
 export class AuthModule {}

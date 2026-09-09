@@ -1,13 +1,11 @@
 import { NestMiddleware } from '@nestjs/common';
-import { AuthService } from './auth.service.js';
+import { AuthTokenService } from './auth-token.service.js';
 import { NextFunction, Request, Response } from 'express';
 import { ApiError } from '../../common/exceptions/api-error.exception.js';
-import { ConfigService } from '../../config/config.service.js';
 
 export class AuthenticationMiddleware implements NestMiddleware {
   constructor(
-    private readonly authService: AuthService,
-    private readonly configService: ConfigService,
+    private readonly tokenService: AuthTokenService,
   ) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
@@ -22,10 +20,7 @@ export class AuthenticationMiddleware implements NestMiddleware {
     }
 
     try {
-      const user = await this.authService.verifyToken(
-        token,
-        this.configService.jwtSecret as string,
-      );
+      const user = await this.tokenService.verifyAccessToken(token);
       req.userId = user.id;
 
       next();
