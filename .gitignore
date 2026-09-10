@@ -23,17 +23,13 @@ lerna-debug.log*
 /.idea
 .project
 .classpath
+temp_auto_push.bat
 .c9/
 *.launch
 .settings/
 *.sublime-workspace
 
 # IDE - VSCode
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
 
 # dotenv environment variable files
 .env
@@ -54,3 +50,5 @@ pids
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+.gitignore
+branch_structure.json
