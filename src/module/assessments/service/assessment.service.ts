@@ -99,16 +99,32 @@ export class AssessmentService {
       throw ApiError.notFound(`Assessment ${id} not found`);
     }
 
+    // Use lean() in the repository query to get plain objects
+    // For now, manually convert to avoid leaking Mongoose internals
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const plainAssessment = (assessment as any).toObject
+      ? (assessment as any).toObject()
+      : {
+          _id: assessment._id,
+          userId: assessment.userId,
+          goalId: assessment.goalId,
+          lessonId: assessment.lessonId,
+          type: assessment.type,
+          status: assessment.status,
+          questions: assessment.questions,
+          metadata: assessment.metadata,
+        };
+
     if (forAttempt) {
       return {
-        ...assessment,
+        ...plainAssessment,
         questions: stripAnswers(
-          assessment.questions as unknown as QuestionDoc[],
+          plainAssessment.questions as unknown as QuestionDoc[],
         ),
       };
     }
 
-    return assessment;
+    return plainAssessment;
   }
 
   async submitAttempt(
@@ -183,7 +199,7 @@ export class AssessmentService {
     // 6. Update learner state (cross-module call).
     await this.learnerStateService.upsertFromAssessmentEvaluation(
       userId,
-      assessment.goalId.toString(),
+      ((assessment as any).goalId || assessment.goalId).toString(),
       { overallScore, perConcept },
     );
 

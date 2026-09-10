@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { LLMUsage, LLMUsageSchema } from './llm-usage.model.js';
 import { LlmController } from './llm.controller.js';
+import { LlmUsageController } from './llm-usage.controller.js';
 import { ConfigModule } from '../../config/config.module.js';
 import { ConfigService as NestConfigService } from '@nestjs/config';
 import { LlmClientService } from './service/llm-client.service.js';
@@ -55,6 +56,6 @@ import { GroqLLM } from './service/providers/groq-llm.service.js';
       inject: [OpenAILLM, AnthropicLLM, GroqLLM, NestConfigService],
     },
   ],
-  controllers: [LlmController],
+  controllers: [LlmController, LlmUsageController],
 })
 export class LlmModule {}

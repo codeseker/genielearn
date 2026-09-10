@@ -28,6 +28,7 @@ import { PromptsModule } from './module/prompts/prompts.module.js';
 import { GamificationModule } from './module/gamification/gamification.module.js';
 import { UploadsModule } from './module/uploads/uploads.module.js';
 import { MongooseModule } from '@nestjs/mongoose';
+import { BullModule } from '@nestjs/bullmq';
 import { ConfigService } from './config/config.service.js';
 import { AuthenticationMiddleware } from './module/auth/auth.middleware.js';
 import { LoggerMiddleware } from './common/middlewares/logger.middleware.js';
@@ -37,6 +38,12 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
 @Module({
   imports: [
     ConfigModule,
+    BullModule.forRoot({
+      connection: {
+        host: process.env.REDIS_HOST ?? 'localhost',
+        port: Number(process.env.REDIS_PORT) ?? 6379,
+      },
+    }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

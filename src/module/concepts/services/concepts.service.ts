@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConceptRepository } from '../repository/concept.repository.js';
+import { Concept } from '../concept.model.js';
 import {
   CreateConceptPayload,
   UpdateConceptPayload,
@@ -73,6 +74,59 @@ export class ConceptService {
 
   async exists(filter: Record<string, unknown>) {
     return this.conceptRepo.exists(filter);
+  }
+
+  async findMany(
+    filter: Record<string, unknown> = {},
+    options?: { limit?: number },
+  ): Promise<Array<{ _id: string; name: string; slug: string }>> {
+    const docs = await this.conceptRepo.findMany(filter);
+
+    let result = docs.map((d) => ({
+      _id: d._id.toString(),
+      name: d.name,
+      slug: d.slug,
+    }));
+
+    if (options?.limit && result.length > options.limit) {
+      result = result.slice(0, options.limit);
+    }
+
+    return result;
+  }
+
+  async resolveOrCreate(candidate: {
+    name: string;
+    description?: string | null;
+    domain?: string | null;
+    difficulty?: number | null;
+  }): Promise<{ id: string; created: boolean }> {
+    const baseSlug = this.slugify(candidate.name);
+    let slug = baseSlug;
+    let suffix = 1;
+
+    // Find an unused slug, appending a numeric suffix silently if needed.
+    // Unlike create(), this does NOT throw on near-duplicates — it's an
+    // automated path that should always succeed.
+    while (await this.conceptRepo.exists({ slug })) {
+      slug = `${baseSlug}-${suffix}`;
+      suffix += 1;
+    }
+
+    const existing = await this.conceptRepo.findOne({ slug });
+    if (existing) {
+      return { id: existing._id.toString(), created: false };
+    }
+
+    const concept = await this.conceptRepo.create({
+      name: candidate.name,
+      slug,
+      description: candidate.description ?? null,
+      domain: candidate.domain ?? null,
+      difficulty: candidate.difficulty ?? null,
+    });
+
+    return { id: concept._id.toString(), created: true };
   }
 
   private async ensureExists(id: string) {

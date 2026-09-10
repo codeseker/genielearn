@@ -13,7 +13,7 @@ import { PromptVersionService } from './service/promptVersion.service.js';
       },
     ]),
   ],
-  exports: [MongooseModule],
+  exports: [MongooseModule, PromptVersionService],
   providers: [PromptService, PromptVersionService],
 })
 export class PromptsModule {}
